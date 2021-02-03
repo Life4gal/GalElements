@@ -188,7 +188,7 @@ namespace cycfi::elements
         }
 
         template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
-        [[maybe_unused]] constexpr auto get_distance(const basic_point<T>& other) noexcept
+        constexpr auto get_distance(const basic_point<T>& other) const noexcept
         {
             return std::sqrt(std::pow(this->template horizontal_distance(std::forward<const basic_point<T>&>(other)), 2) + std::pow(this->template vertical_distance(std::forward<const basic_point<T>&>(other)), 2));
         }

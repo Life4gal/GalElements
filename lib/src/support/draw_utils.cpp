@@ -114,8 +114,8 @@ namespace cycfi { namespace elements
       // Draw beveled knob
       {
          auto gradient = canvas::radial_gradient{
-            { cp.cx, cp.cy }, radius*0.75f,
-            { cp.cx, cp.cy }, radius
+            cp.center, radius*0.75f,
+            cp.center, radius
          };
 
          gradient.add_color_stop({ 0.0, c });
@@ -130,7 +130,7 @@ namespace cycfi { namespace elements
 
       // Draw some 3D highlight
       {
-          auto hcp = cp.center();
+          auto hcp = cp.center;
           hcp.move_to(-radius, -radius);
           auto gradient = canvas::radial_gradient{
                   hcp, radius*0.5f,
@@ -163,7 +163,7 @@ namespace cycfi { namespace elements
          cnv.fill_rule(canvas::fill_odd_even);
          cnv.clip();
 
-         auto bounds = cp.bounds();
+         auto bounds = cp.get_circumscribed_rect();
          auto gradient = canvas::linear_gradient{
                  bounds.left_top(),
                  bounds.left_bottom()
@@ -203,7 +203,7 @@ namespace cycfi { namespace elements
 
       // Draw some 3D highlight
       {
-         auto hcp = cp.center();
+         auto hcp = cp.center;
          hcp.move_to(-radius, -radius);
          auto gradient = canvas::radial_gradient{
             hcp, radius*0.5f,
@@ -231,8 +231,8 @@ namespace cycfi { namespace elements
       // Add some outer bevel
       {
          auto gradient = canvas::linear_gradient{
-            { cp.cx, cp.cy - cp.radius },
-            { cp.cx, cp.cy + cp.radius }
+            { cp.center.x, cp.center.y - cp.radius },
+            { cp.center.x, cp.center.y + cp.radius }
          };
 
          gradient.add_color_stop({ 0.0, colors::white.opacity(0.3) });
@@ -287,7 +287,7 @@ namespace cycfi { namespace elements
       using namespace radial_consts;
 
       auto state = cnv.new_state();
-      auto center = cp.center();
+      auto center = cp.center;
       cnv.translate({ center.x, center.y });
       cnv.rotate(offset + (val * range));
 
@@ -304,7 +304,7 @@ namespace cycfi { namespace elements
    {
       using namespace radial_consts;
       auto state = cnv.new_state();
-      auto center = cp.center();
+      auto center = cp.center;
       constexpr auto num_divs = 50;
       float div = range / num_divs;
       auto const& theme = get_theme();
@@ -352,7 +352,7 @@ namespace cycfi { namespace elements
 
       using namespace radial_consts;
       auto state = cnv.new_state();
-      auto center = cp.center();
+      auto center = cp.center;
       float div = range / (num_labels-1);
       auto const& theme = get_theme();
 

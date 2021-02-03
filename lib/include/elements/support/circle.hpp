@@ -1,90 +1,98 @@
-/*=============================================================================
-   Copyright (c) 2016-2020 Joel de Guzman
-
-   Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
-=============================================================================*/
-#if !defined(ELEMENTS_CIRCLE_APRIL_17_2016)
-#define ELEMENTS_CIRCLE_APRIL_17_2016
+#ifndef ELEMENTS_CIRCLE
+#define ELEMENTS_CIRCLE
 
 #include <elements/support/rect.hpp>
 #include <algorithm>
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
-   ////////////////////////////////////////////////////////////////////////////
-   // Circles
-   ////////////////////////////////////////////////////////////////////////////
-   struct circle
-   {
-      constexpr   circle();
-      constexpr   circle(float cx, float cy, float radius);
-      constexpr   circle(point c, float radius);
-      constexpr   circle(rect r);
-                  circle(circle const&) = default;
-      circle&     operator=(circle const&) = default;
+	template<typename CoordinateType, typename = std::enable_if_t<std::is_arithmetic_v<CoordinateType>>>
+	struct basic_circle;
+	using circle = basic_circle<point::coordinate_type>;
 
-      rect        bounds() const { return { cx-radius, cy-radius, cx+radius, cy+radius }; }
-      bool        operator==(circle const& other) const;
-      bool        operator!=(circle const& other) const;
+	template<typename CoordinateType, typename>
+	struct basic_circle
+	{
+		using coordinate_type = CoordinateType;
 
-      point       center() const;
-      circle      inset(float x) const;
-      circle      move(float dx, float dy) const;
-      circle      move_to(float x, float y) const;
+		constexpr basic_circle() : center(), radius(coordinate_type{}) {}
 
-      float       cx;
-      float       cy;
-      float       radius;
+		constexpr basic_circle(coordinate_type x, coordinate_type y, coordinate_type _radius) : center(x, y), radius(_radius) {}
+
+		template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
+		constexpr basic_circle(const basic_point<T>& c, coordinate_type _radius) : center(c), radius(_radius) {}
+
+		// get a rectangle's inscribed circle
+		// we assume that the given rectangle is regular and inscribed circle has the same center point
+		template <typename T>
+		constexpr static basic_circle<T> get_inscribed_circle(const basic_rect<T>& r)
+		{
+			return {r.center_point(), std::min(r.width(), r.height())};
+		}
+
+		// get a circle's inscribed rectangle
+		// inscribed rect has the same center point
+		constexpr basic_rect<coordinate_type> get_inscribed_rect() const
+		{
+			auto size = std::sqrt(2) / 2 * radius;
+			return {center.x - size, center.y - size, center.x + size, center.y + size};
+		}
+
+		// get a rectangle's circumscribed circle
+		// we assume that the given rectangle is regular and inscribed circle has the same center point
+		template <typename T>
+		constexpr static basic_circle<T> get_circumscribed_circle(const basic_rect<T>& r)
+		{
+			auto center = r.center_point();
+			auto radius = center.template get_distance(r.left_top());
+			return {r.center_point(), radius};
+		}
+
+		// get a circle's circumscribed rectangle
+		// circumscribed rect has the same center point
+		constexpr basic_rect<coordinate_type> get_circumscribed_rect() const
+		{
+			auto size = radius;
+			return {center.x - size, center.y - size, center.x + size, center.y + size};
+		}
+
+		template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
+		constexpr bool operator==(const basic_circle<T>& other) const
+		{
+			return other.center == center && other.radius == radius;
+		}
+
+		template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
+		constexpr bool operator!=(const basic_circle<T>& other) const
+		{
+			return !this->template operator==(std::forward<const basic_circle<T>&>(other));
+		}
+
+		template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
+		constexpr basic_circle<coordinate_type> inset(T x) const
+		{
+			auto c = *this;
+			c.radius -= x;
+			return c;
+		}
+
+		template <typename T1, typename T2, typename = std::enable_if_t<std::is_arithmetic_v<T1> && std::is_arithmetic_v<T2> && std::is_convertible_v<T1, coordinate_type> && std::is_convertible_v<T2, coordinate_type>>>
+		constexpr basic_circle<coordinate_type> move(T1 dx, T2 dy) const
+		{
+			auto c = center;
+			c.template move_to(dx, dy);
+			return {c, radius};
+		}
+
+		template <typename T1, typename T2, typename = std::enable_if_t<std::is_arithmetic_v<T1> && std::is_arithmetic_v<T2> && std::is_convertible_v<T1, coordinate_type> && std::is_convertible_v<T2, coordinate_type>>>
+		constexpr void move_to(T1 x, T2 y) const
+		{
+			center.template move_to(x, y);
+		}
+
+		basic_point<coordinate_type> center;
+		coordinate_type radius;
    };
-
-   ////////////////////////////////////////////////////////////////////////////
-   // Inlines
-   ////////////////////////////////////////////////////////////////////////////
-   inline constexpr circle::circle()
-    : cx(0.0), cy(0.0), radius(0.0)
-   {}
-
-   inline constexpr circle::circle(float cx, float cy, float radius)
-    : cx(cx), cy(cy), radius(radius)
-   {}
-
-   inline constexpr circle::circle(point c, float radius)
-    : cx(c.x), cy(c.y), radius(radius)
-   {}
-
-   inline constexpr circle::circle(rect r)
-    : circle(r.center_point(), std::min(r.width(), r.height()))
-   {}
-
-   inline bool circle::operator==(circle const& other) const
-   {
-      return (other.cx == cx) && (other.cy == cy) && (other.radius == radius);
-   }
-
-   inline bool circle::operator!=(circle const& other) const
-   {
-      return !(*this == other);
-   }
-
-   inline point circle::center() const
-   {
-      return { cx, cy };
-   }
-
-   inline circle circle::inset(float x) const
-   {
-      return { cx, cy, radius-x };
-   }
-
-   inline circle circle::move(float dx, float dy) const
-   {
-      return { cx+dx, cy+dy, radius };
-   }
-
-   inline circle circle::move_to(float x, float y) const
-   {
-      return { x, y, radius };
-   }
-}}
+}
 
 #endif

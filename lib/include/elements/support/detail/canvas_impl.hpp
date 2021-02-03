@@ -22,7 +22,7 @@ namespace cycfi { namespace elements
 
    inline void canvas::circle(elements::circle c)
    {
-      arc(point{ c.cx, c.cy }, c.radius, 0.0, 2 * M_PI);
+      arc(c.center, c.radius, 0.0, 2 * M_PI);
    }
 
    inline void canvas::linear_gradient::add_color_stop(color_stop cs)

@@ -84,12 +84,13 @@ void my_custom_control::draw(context const& ctx)
    ctx.canvas.stroke();
 
    // Center points for four knobs.
+   auto circumscribed_rect = outer_ring.get_circumscribed_rect();
    _knobs = point_array
       {
-         point(outer_ring.bounds().left, ctx.bounds.center_point().y),
-         point(outer_ring.bounds().right, ctx.bounds.center_point().y),
-         point(ctx.bounds.center_point().x, outer_ring.bounds().top),
-         point(ctx.bounds.center_point().x, outer_ring.bounds().bottom),
+         point(circumscribed_rect.left, ctx.bounds.center_point().y),
+         point(circumscribed_rect.right, ctx.bounds.center_point().y),
+         point(ctx.bounds.center_point().x, circumscribed_rect.top),
+         point(ctx.bounds.center_point().x, circumscribed_rect.bottom),
       };
 
    // Draw four knobs.
