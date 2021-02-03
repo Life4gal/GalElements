@@ -10,21 +10,21 @@
 namespace cycfi { namespace elements
 {
    theme::theme()
-    : panel_color                { rgba(28, 30, 34, 192) }
-    , frame_color                { rgba(220, 220, 220, 80) }
-    , frame_hilite_color         { rgba(220, 220, 220, 160) }
+    : panel_color                { color::build_color(28, 30, 34, 192) }
+    , frame_color                { color::build_color(220, 220, 220, 80) }
+    , frame_hilite_color         { color::build_color(220, 220, 220, 160) }
     , frame_corner_radius        { 3.0 }
     , frame_stroke_width         { 1.0 }
-    , scrollbar_color            { rgba(80, 80, 80, 80) }
-    , default_button_color       { rgba(0, 0, 0, 0) }
+    , scrollbar_color            { color::build_color(80, 80, 80, 80) }
+    , default_button_color       { color::build_color(0, 0, 0, 0) }
     , button_margin              { 10, 5, 10, 5 }
 
-    , controls_color             { rgba(18, 49, 85, 200) }
+    , controls_color             { color::build_color(18, 49, 85, 200) }
     , controls_frame_stroke_width{ 1.5 }
-    , indicator_color            { rgba(0, 127, 255, 200) }
+    , indicator_color            { color::build_color(0, 127, 255, 200) }
     , indicator_bright_color     { indicator_color.level(1.5) }
     , indicator_hilite_color     { indicator_color.level(2.0) }
-    , basic_font_color           { rgba(220, 220, 220, 200) }
+    , basic_font_color           { color::build_color(220, 220, 220, 200) }
 
 // The symbols_font font is the OS supplied font that includes unicode symbols
 // such as Miscellaneous Technical : Unicode U+2300 – U+23FF (8960–9215)
@@ -56,13 +56,13 @@ namespace cycfi { namespace elements
     , text_box_font_color        { basic_font_color }
     , text_box_font              { font_descr{ "Open Sans" } }
     , text_box_font_size         { 14.0 }
-    , text_box_hilite_color      { rgba(0, 127, 255, 100) }
-    , text_box_caret_color       { rgba(0, 190, 255, 255) }
+    , text_box_hilite_color      { color::build_color(0, 127, 255, 100) }
+    , text_box_caret_color       { color::build_color(0, 190, 255, 255) }
     , text_box_caret_width       { 1.2 }
-    , inactive_font_color        { rgba(127, 127, 127, 150) }
+    , inactive_font_color        { color::build_color(127, 127, 127, 150) }
     , input_box_text_limit       { 1024 }
 
-    , ticks_color                { rgba(127, 127, 127, 150) }
+    , ticks_color                { color::build_color(127, 127, 127, 150) }
     , major_ticks_level          { 0.5 }
     , major_ticks_width          { 1.5 }
     , minor_ticks_level          { 0.4 }
