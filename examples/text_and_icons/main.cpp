@@ -8,7 +8,7 @@
 using namespace cycfi::elements;
 
 // Main window background color
-auto constexpr bkd_color = rgba(35, 35, 37, 255);
+auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
 auto background = box(bkd_color);
 
 auto box = draw(
@@ -128,7 +128,7 @@ auto make_basic_text()
       top_margin(20, pane("Labels",
          vtile(
             el(label("Hello, Universe. This is Elements.")
-               .font(font_descr{ "Open Sans" }.semi_bold())
+               .font(font_descriptor{ "Open Sans" }.semi_bold())
                .font_color(colors::antique_white)
                .font_size(18)
             ),

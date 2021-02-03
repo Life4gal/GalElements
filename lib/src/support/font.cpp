@@ -337,30 +337,30 @@ namespace cycfi { namespace elements
             fc_black           = 210
          };
 
-         auto&& map = [](double mina, double maxa, double minb, double maxb, double val)
+         auto&& map = [](auto mina, auto maxa, auto minb, auto maxb, auto val)
          {
-            return lerp(mina, maxa, (val-minb)/(maxb-minb));
+            return lerp(static_cast<double>(mina), static_cast<double>(maxa), (val-minb)/(maxb-minb));
          };
 
          namespace fc = font_constants;
 
          if (w < fc_extralight)
-            return map(fc::thin, fc::extra_light, fc_thin, fc_extralight, w);
+            return map(fc::weight_enum::thin, fc::weight_enum::extra_light, fc_thin, fc_extralight, w);
          if (w < fc_light)
-            return map(fc::extra_light, fc::light, fc_extralight, fc_light, w);
+            return map(fc::weight_enum::extra_light, fc::weight_enum::light, fc_extralight, fc_light, w);
          if (w < fc_normal)
-            return map(fc::light, fc::weight_normal, fc_light, fc_normal, w);
+            return map(fc::weight_enum::light, fc::weight_enum::normal, fc_light, fc_normal, w);
          if (w < fc_medium)
-            return map(fc::weight_normal, fc::medium, fc_normal, fc_medium, w);
+            return map(fc::weight_enum::normal, fc::weight_enum::medium, fc_normal, fc_medium, w);
          if (w < fc_semibold)
-            return map(fc::medium, fc::semi_bold, fc_medium, fc_semibold, w);
+            return map(fc::weight_enum::medium, fc::weight_enum::semi_bold, fc_medium, fc_semibold, w);
          if (w < fc_bold)
-            return map(fc::semi_bold, fc::bold, fc_semibold, fc_bold, w);
+            return map(fc::weight_enum::semi_bold, fc::weight_enum::bold, fc_semibold, fc_bold, w);
          if (w < fc_extrabold)
-            return map(fc::bold, fc::extra_bold, fc_bold, fc_extrabold, w);
+            return map(fc::weight_enum::bold, fc::weight_enum::extra_bold, fc_bold, fc_extrabold, w);
          if (w < fc_black)
-            return map(fc::extra_bold, fc::black, fc_extrabold, fc_black, w);
-         return map(fc::black, 100, fc_black, 220, std::min(w, 220));
+            return map(fc::weight_enum::extra_bold, fc::weight_enum::black, fc_extrabold, fc_black, w);
+         return map(fc::weight_enum::black, 100, fc_black, 220, std::min(w, 220));
       }
 
       struct font_entry
@@ -371,27 +371,27 @@ namespace cycfi { namespace elements
          , file(reinterpret_cast<char const*>(file))
          {
             if (auto w = pattern.get_weight(); w)
-               weight = map_fc_weight(*w); // map the weight (normalized 0 to 100)
+               weight = static_cast<font_constants::weight_enum>(map_fc_weight(*w)); // map the weight (normalized 0 to 100)
             else
-               weight = font_constants::weight_normal;
+               weight = font_constants::weight_enum::normal;
 
             if (auto s = pattern.get_slant(); s)
-               slant = (*s * 100) / 110; // normalize 0 to 100
+               slant = static_cast<font_constants::slant_enum>((*s * 100) / 110); // normalize 0 to 100
             else
-               slant = font_constants::slant_normal;
+               slant = font_constants::slant_enum::normal;
 
             if (auto w = pattern.get_width(); w)
-               stretch = (*w * 100) / 200; // normalize 0 to 100
+               stretch = static_cast<font_constants::stretch_enum>((*w * 100) / 200); // normalize 0 to 100
             else
-               stretch = font_constants::stretch_normal;
+               stretch = font_constants::stretch_enum::normal;
          }
 
          fc::pattern pattern;
          std::string full_name;
          std::string file;
-         std::uint8_t weight;
-         std::uint8_t slant;
-         std::uint8_t stretch;
+	      font_constants::weight_enum weight;
+	      font_constants::slant_enum slant;
+	      font_constants::stretch_enum stretch;
       };
 
       using font_map_type = std::map<std::string, std::vector<font_entry>>;
@@ -442,12 +442,12 @@ namespace cycfi { namespace elements
          }
       }
 
-      font_entry const* match(font_descr descr)
+      font_entry const* match(font_descriptor descr)
       {
          if (font_map().empty())
             init_font_map();
 
-         std::istringstream str(std::string{ descr._families });
+         std::istringstream str(std::string{ descr.font_families});
          std::string family;
          while (getline(str, family, ','))
          {
@@ -464,9 +464,9 @@ namespace cycfi { namespace elements
                   // the highest bias (3.0), followed by `weight` (1.0) and then
                   // `stretch` (0.25).
                   auto diff =
-                     (std::abs(int(descr._weight) - int(item.weight)) * 1.0) +
-                     (std::abs(int(descr._slant) - int(item.slant)) * 3.0) +
-                     (std::abs(int(descr._stretch) - int(item.stretch)) * 0.25)
+                     (std::abs(int(descr.weight) - int(item.weight)) * 1.0) +
+                     (std::abs(int(descr.slant) - int(item.slant)) * 3.0) +
+                     (std::abs(int(descr.stretch) - int(item.stretch)) * 0.25)
                      ;
                   if (diff < min)
                   {
@@ -628,7 +628,7 @@ namespace cycfi { namespace elements
       return _paths;
    }
 
-   font::font(font_descr descr)
+   font::font(font_descriptor descr)
    {
 #ifndef __APPLE__
       static free_type_library ft_lib;
@@ -641,7 +641,7 @@ namespace cycfi { namespace elements
          std::lock_guard<std::mutex> lock(cairo_font_map_mutex);
          if (auto it = cairo_font_map.find(match_ptr->full_name); it != cairo_font_map.end())
          {
-            _handle = cairo_font_face_reference(it->second);
+			 font_handle = cairo_font_face_reference(it->second);
          }
          else
          {
@@ -653,52 +653,52 @@ namespace cycfi { namespace elements
              , kCFStringEncodingUTF8
             );
             auto cgfont = CGFontCreateWithFontName(cfstr);
-            _handle = cairo_quartz_font_face_create_for_cgfont(cgfont);
+            font_handle = cairo_quartz_font_face_create_for_cgfont(cgfont);
             if (cgfont)
                CFRelease(cgfont);
             if (cfstr)
                CFRelease(cfstr);
 #else
-            _handle = ft_lib.load_font(match_ptr->file.c_str());
+			 font_handle = ft_lib.load_font(match_ptr->file.c_str());
 #endif
 
-            if (_handle)
-               cairo_font_map[match_ptr->full_name] = cairo_font_face_reference(_handle);
+            if (font_handle)
+               cairo_font_map[match_ptr->full_name] = cairo_font_face_reference(font_handle);
          }
       }
       else
       {
-         _handle = nullptr;
+		  font_handle = nullptr;
       }
    }
 
    font::font(font const& rhs)
    {
-      _handle = cairo_font_face_reference(rhs._handle);
+	   font_handle = cairo_font_face_reference(rhs.font_handle);
    }
 
    font& font::operator=(font const& rhs)
    {
       if (&rhs != this)
-         _handle = cairo_font_face_reference(rhs._handle);
+		  font_handle = cairo_font_face_reference(rhs.font_handle);
       return *this;
    }
 
    font::font(font&& rhs) noexcept
    {
-      std::swap(_handle, rhs._handle);
+      std::swap(font_handle, rhs.font_handle);
    }
 
    font& font::operator=(font&& rhs) noexcept
    {
-      std::swap(_handle, rhs._handle);
+      std::swap(font_handle, rhs.font_handle);
       return *this;
    }
 
    font::~font()
    {
-      if (_handle)
-         cairo_font_face_destroy(_handle);
+      if (font_handle)
+         cairo_font_face_destroy(font_handle);
    }
 }}
 

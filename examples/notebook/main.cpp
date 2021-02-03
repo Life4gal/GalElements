@@ -8,7 +8,7 @@
 using namespace cycfi::elements;
 
 // Main window background color
-auto constexpr bkd_color = rgba(35, 35, 37, 255);
+auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
 auto background = box(bkd_color);
 
 auto make_tabs(view& view_)

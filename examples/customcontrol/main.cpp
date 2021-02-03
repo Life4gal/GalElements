@@ -9,7 +9,7 @@
 using namespace cycfi::elements;
 using namespace cycfi;
 
-auto constexpr bkd_color = rgba(35, 35, 37, 255);
+auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
 auto background = rbox(bkd_color, 5);
 
 // Function to calculate distance

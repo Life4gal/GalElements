@@ -116,6 +116,7 @@ set(ELEMENTS_HEADERS
    include/elements/support/resource_paths.hpp
    include/elements/support/text_utils.hpp
    include/elements/support/theme.hpp
+   include/elements/support/enum_operator.hpp
    include/elements/view.hpp
    include/elements/window.hpp
 )
