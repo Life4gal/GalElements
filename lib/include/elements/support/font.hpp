@@ -15,7 +15,10 @@ namespace cycfi::elements
 {
 	namespace font_constants
 	{
-		enum class weight_enum
+		using font_enum_type = int;
+		constexpr font_enum_type unknown_enum = -1;
+
+		enum class weight_enum : font_enum_type
 		{
 			thin                = 10,
 			extra_light         = 20,
@@ -27,16 +30,17 @@ namespace cycfi::elements
 			extra_bold          = 80,
 			black               = 90,
 			extra_black         = 95,
+			ultra_black         = 100
 		};
 
-		enum class slant_enum
+		enum class slant_enum : font_enum_type
 		{
 			normal              = 0,
 			italic              = 90,
 			oblique             = 100
 		};
 
-		enum class stretch_enum
+		enum class stretch_enum : font_enum_type
 		{
 			ultra_condensed     = 25,
 			extra_condensed     = 31,
@@ -131,6 +135,13 @@ namespace cycfi::elements
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::extra_black);
+			return f;
+		}
+
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_ultra_black() const
+		{
+			auto f = *this;
+			f.set_weight(font_constants::weight_enum::ultra_black);
 			return f;
 		}
 
@@ -237,36 +248,28 @@ namespace cycfi::elements
 	class font
 	{
 	public:
-		font();
+		font() : font_handle(nullptr) {}
+
 		explicit font(font_descriptor descriptor);
 		font(font const& rhs);
 		font(font&& rhs) noexcept;
 		~font();
 		font& operator=(font const& rhs);
 		font& operator=(font&& rhs) noexcept;
-		explicit operator bool() const;
+
+		explicit operator bool() const noexcept
+		{
+			return font_handle != nullptr;
+		}
 
 	private:
 		friend class canvas;
-		cairo_font_face_t* font_handle = nullptr;
+		cairo_font_face_t* font_handle;
 	};
-
-   ////////////////////////////////////////////////////////////////////////////
-   // Inlines
-   ////////////////////////////////////////////////////////////////////////////
-   inline font::font()
-    : font_handle(nullptr)
-   {}
-
-   inline font::operator bool() const
-   {
-      return font_handle;
-   }
 
 #ifdef __APPLE__
    fs::path get_user_fonts_directory();
 #endif
-
    std::vector<fs::path>& font_paths();
 }
 

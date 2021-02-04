@@ -1,6 +1,7 @@
 /*=============================================================================
    Copyright (c) 2016-2020 Joel de Guzman
    Copyright (c) 2020 Michał Urbański
+   Copyright (c) 2021 Life4gal
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -40,359 +41,353 @@
 #include <utility>
 #include <type_traits>
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
-   namespace
-   {
-      inline void ltrim(std::string& s)
-      {
-         s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-            [](int ch) { return ch != ' ' && ch != '"'; }
-         ));
-      }
+	namespace
+	{
+		inline void ltrim(std::string& s)
+		{
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(),[](int ch) { return ch != ' ' && ch != '"'; }));
+		}
 
-      inline void rtrim(std::string& s)
-      {
-         s.erase(std::find_if(s.rbegin(), s.rend(),
-            [](int ch) { return ch != ' ' && ch != '"'; }
-         ).base(), s.end());
-      }
+		inline void rtrim(std::string& s)
+		{
+			s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return ch != ' ' && ch != '"'; }).base(), s.end());
+		}
 
-      inline void trim(std::string& s)
-      {
-         ltrim(s);
-         rtrim(s);
-      }
+		inline void trim(std::string& s)
+		{
+			ltrim(s);
+			rtrim(s);
+		}
 
-      inline float lerp(float a, float b, float f)
-      {
-         return (a * (1.0 - f)) + (b * f);
-      }
+		template<typename T1, typename T2, typename T3, // allow 3 different type
+				typename RetType = std::common_type_t<T1, T2, T3>,
+				typename = std::enable_if_t<
+						            std::is_arithmetic_v<T1> && // is arithmetic type
+						            std::is_arithmetic_v<T2> && // is arithmetic type
+						            std::is_arithmetic_v<T3> && // is arithmetic type
+						            std::is_convertible_v<T1, T3> &&
+						            std::is_convertible_v<T2, T3>
+								>
+				>
+		constexpr RetType lerp(const T1& start, const T2& end, const T3& value)
+		{
+			return (start * (static_cast<RetType>(1) - value)) + (end * value);
+		}
+
+		// for enum
+		template<typename RetType, typename Enum, typename T, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<EnumType, T>>>
+		constexpr RetType lerp(const Enum& start, const Enum& end, const T& value)
+		{
+			return static_cast<RetType>(
+					(static_cast<EnumType>(start) * (1 - value)) +
+					(static_cast<EnumType>(end) * value)
+					);
+		}
 
 #ifndef __APPLE__
-      auto const& cairo_user_data_key()
-      {
-         static const cairo_user_data_key_t key = {};
-         return key;
-      }
+		auto const& cairo_user_data_key()
+		{
+			static const cairo_user_data_key_t key = {};
+			return key;
+		}
 #endif
-      namespace fc
-      {
-         struct font_config_deleter
-         {
-            void operator()(FcConfig* ptr) const
+		namespace fc
+		{
+			struct font_config_deleter
+			{
+				void operator()(FcConfig* ptr) const
+				{
+					FcConfigDestroy(ptr);
+				}
+			};
+
+			using font_config_ptr = std::unique_ptr<FcConfig, font_config_deleter>;
+
+			struct load_config_and_fonts_tag {};
+			struct load_config_tag {};
+			struct load_none_tag {};
+			struct no_init_tag {};
+
+			class config
+			{
+			public:
+				explicit config(no_init_tag) {}
+
+				explicit config(load_none_tag) : _config_ptr((FcInit() == FcTrue) ? FcConfigCreate() : nullptr) {}
+
+				explicit config(load_config_tag) : _config_ptr((FcInit() == FcTrue) ? FcInitLoadConfig() : nullptr) {}
+
+				explicit config(load_config_and_fonts_tag) : _config_ptr((FcInit() == FcTrue) ? FcInitLoadConfigAndFonts() : nullptr) {}
+
+				explicit operator bool() const noexcept
+				{
+					return _config_ptr != nullptr;
+				}
+
+				[[nodiscard]] FcConfig* get() const noexcept
+				{
+					return _config_ptr.get();
+				}
+
+				bool app_font_add_dir(FcChar8 const* path)
+                {
+					FcBool status = FcConfigAppFontAddDir(_config_ptr.get(), path);
+					return status == FcTrue;
+				}
+
+			private:
+				font_config_ptr _config_ptr = nullptr;
+			};
+
+			config& instance()
+			{
+				static config conf(fc::load_config_and_fonts_tag{});
+
+				if (!conf)
+					throw std::runtime_error("Failed to initialize font config library!");
+
+				return conf;
+			}
+
+			struct pattern_empty_tag {};
+			struct pattern_shallow_copy_tag {};
+
+			class pattern
+			{
+			public:
+				pattern() : _pattern(nullptr) {}
+
+				explicit pattern(pattern_empty_tag) : _pattern(FcPatternCreate()) {}
+
+				pattern(pattern_shallow_copy_tag, FcPattern& pattern) : _pattern(&pattern)
+				{
+					FcPatternReference(_pattern);
+                }
+
+				~pattern()
+				{
+					if (_pattern)
+						FcPatternDestroy(_pattern);
+				}
+
+				pattern(pattern const& other) : pattern(pattern_shallow_copy_tag{}, *other._pattern) {}
+
+				pattern& operator=(pattern other) noexcept
+				{
+					swap(*this, other);
+					return *this;
+                }
+
+				pattern(pattern&& other) noexcept : pattern()
+				{
+					swap(*this, other);
+				}
+
+				friend void swap(pattern& lhs, pattern& rhs) noexcept
+				{
+					std::swap(lhs._pattern, rhs._pattern);
+				}
+
+				FcPattern* handle()
+				{
+					return _pattern;
+				}
+
+				[[nodiscard]] font_constants::weight_enum get_weight() const
+				{
+					return static_cast<font_constants::weight_enum>(get_int(FC_WEIGHT).value_or(font_constants::unknown_enum));
+				}
+
+				[[nodiscard]] font_constants::slant_enum get_slant() const
+				{
+					return static_cast<font_constants::slant_enum>(get_int(FC_SLANT).value_or(font_constants::unknown_enum));
+				}
+
+				[[nodiscard]] font_constants::stretch_enum get_width() const
+				{
+					return static_cast<font_constants::stretch_enum>(get_int(FC_WIDTH).value_or(font_constants::unknown_enum));
+				}
+
+			private:
+				optional<font_constants::font_enum_type> get_int(const char* object) const
+				{
+					int x;
+					if (FcPatternGetInteger(_pattern, object, 0, &x) == FcResultMatch)
+						return x;
+					else
+						return nullopt;
+				}
+
+			FcPattern* _pattern;
+		};
+
+		class object_set
+		{
+		public:
+			object_set() : _set(nullptr) {}
+
+			template <typename... Args>
+			explicit object_set(Args&&... args)
+			{
+				static_assert((std::is_same_v<std::decay_t<Args>, char const*> && ...));
+				_set = FcObjectSetBuild(std::forward<Args>(args)..., nullptr);
+			}
+
+			~object_set()
+			{
+				if (_set)
+					FcObjectSetDestroy(_set);
+			}
+
+			object_set(object_set const& other) = delete;
+			object_set& operator=(object_set const& other) = delete;
+
+			object_set(object_set&& other) noexcept : object_set()
             {
-               FcConfigDestroy(ptr);
-            }
-         };
-
-         using font_config_ptr = std::unique_ptr<FcConfig, font_config_deleter>;
-
-         struct load_config_and_fonts_tag {};
-         struct load_config_tag {};
-         struct load_none_tag {};
-         struct no_init_tag {};
-
-         class config
-         {
-         public:
-            config(no_init_tag)
-            {
-            }
-
-            config(load_none_tag)
-            : _config_ptr((FcInit() == FcTrue) ? FcConfigCreate() : nullptr)
-            {
-            }
-
-            config(load_config_tag)
-            : _config_ptr((FcInit() == FcTrue) ? FcInitLoadConfig() : nullptr)
-            {
-            }
-
-            config(load_config_and_fonts_tag)
-            : _config_ptr((FcInit() == FcTrue) ? FcInitLoadConfigAndFonts() : nullptr)
-            {
-            }
-
-            ~config()
-            {
-            }
-
-            explicit operator bool() const noexcept
-            {
-               return _config_ptr != nullptr;
-            }
-
-            FcConfig* get() const noexcept
-            {
-               return _config_ptr.get();
-            }
-
-            bool app_font_add_dir(FcChar8 const* path)
-            {
-               FcBool status = FcConfigAppFontAddDir(_config_ptr.get(), path);
-               return status == FcTrue;
-            }
-
-         private:
-            font_config_ptr _config_ptr = nullptr;
-         };
-
-         config& instance()
-         {
-            static config conf(fc::load_config_and_fonts_tag{});
-
-            if (!conf)
-              throw std::runtime_error("Failed to initialize font config library!");
-
-            return conf;
-         }
-
-         struct pattern_empty_tag {};
-         struct pattern_shallow_copy_tag {};
-
-         class pattern
-         {
-         public:
-            pattern() = default;
-
-            pattern(pattern_empty_tag)
-            : _pattern(FcPatternCreate())
-            {
-            }
-
-            pattern(pattern_shallow_copy_tag, FcPattern& pattern)
-            : _pattern(&pattern)
-            {
-               FcPatternReference(_pattern);
-            }
-
-            ~pattern()
-            {
-               if (_pattern)
-                  FcPatternDestroy(_pattern);
-            }
-
-            pattern(pattern const& other)
-            : pattern(pattern_shallow_copy_tag{}, *other._pattern)
-            {
-            }
-
-            pattern& operator=(pattern other) noexcept
-            {
-               swap(*this, other);
-               return *this;
-            }
-
-            pattern(pattern&& other) noexcept
-            : pattern()
-            {
-               swap(*this, other);
-            }
-
-            friend void swap(pattern& lhs, pattern& rhs) noexcept
-            {
-               std::swap(lhs._pattern, rhs._pattern);
-            }
-
-            FcPattern* handle()
-            {
-               return _pattern;
-            }
-
-            optional<int> get_weight() const
-            {
-               return get_int(FC_WEIGHT);
-            }
-
-            optional<int> get_slant() const
-            {
-               return get_int(FC_SLANT);
-            }
-
-            optional<int> get_width() const
-            {
-               return get_int(FC_WIDTH);
-            }
-
-         private:
-            optional<int> get_int(char const* object) const
-            {
-               int x;
-               if (FcPatternGetInteger(_pattern, object, 0, &x) == FcResultMatch)
-                  return x;
-               else
-                  return nullopt;
-            }
-
-            FcPattern* _pattern = nullptr;
-         };
-
-         class object_set
-         {
-         public:
-            object_set() = default;
-
-            template <typename... Args>
-            object_set(Args&&... args)
-            {
-               static_assert((std::is_same_v<std::decay_t<Args>, char const*> && ...));
-               _set = FcObjectSetBuild(std::forward<Args>(args)..., nullptr);
+				swap(*this, other);
             }
 
-            ~object_set()
+			object_set& operator=(object_set&& other) noexcept
             {
-               if (_set)
-                  FcObjectSetDestroy(_set);
+				swap(*this, other);
+				return *this;
             }
 
-            object_set(object_set const& other) = delete;
-            object_set& operator=(object_set const& other) = delete;
-
-            object_set(object_set&& other) noexcept
-            : object_set()
+			friend void swap(object_set& lhs, object_set& rhs) noexcept
             {
-               swap(*this, other);
+				std::swap(lhs._set, rhs._set);
             }
 
-            object_set& operator=(object_set&& other) noexcept
+			FcObjectSet* handle()
             {
-               swap(*this, other);
-               return *this;
-            }
+				return _set;
+			}
 
-            friend void swap(object_set& lhs, object_set& rhs) noexcept
-            {
-               std::swap(lhs._set, rhs._set);
-            }
+		private:
+			FcObjectSet* _set;
+		};
 
-            FcObjectSet* handle()
-            {
-               return _set;
-            }
+		struct font_set_deleter
+		{
+			void operator()(FcFontSet* set)
+			{
+				if (set)
+					FcFontSetDestroy(set);
+			}
+		};
 
-         private:
-            FcObjectSet* _set = nullptr;
-         };
+		using font_set_ptr = std::unique_ptr<FcFontSet, font_set_deleter>;
 
-         struct font_set_deleter
-         {
-            void operator()(FcFontSet* set)
-            {
-               if (set)
-                  FcFontSetDestroy(set);
-            }
-         };
+		font_set_ptr font_list(FcConfig* c, pattern& p, object_set& os)
+		{
+			font_set_ptr ptr(FcFontList(c, p.handle(), os.handle()));
 
-         using font_set_ptr = std::unique_ptr<FcFontSet, font_set_deleter>;
+			if (!ptr)
+				throw std::runtime_error("FcFontList returned null pointer!");
 
-         font_set_ptr font_list(FcConfig* c, pattern& p, object_set& os)
-         {
-            font_set_ptr ptr(FcFontList(c, p.handle(), os.handle()));
+			return ptr;
+		}
+	} // namespace
 
-            if (!ptr)
-               throw std::runtime_error("FcFontList returned null pointer!");
+		using cairo_font_map_type = std::map<std::string, cairo_font_face_t*>;
 
-            return ptr;
-         }
-      } // namespace
+		std::pair<cairo_font_map_type&, std::mutex&> get_cairo_font_map()
+		{
+			static cairo_font_map_type cairo_font_map_;
+			static std::mutex cairo_font_map_mutex_;
 
-      using cairo_font_map_type = std::map<std::string, cairo_font_face_t*>;
+			struct cleanup
+			{
+				~cleanup()
+				{
+					std::lock_guard<std::mutex> lock(cairo_font_map_mutex_);
+					for (auto [key, scaled_font] : cairo_font_map_)
+						cairo_font_face_destroy(scaled_font);
+					cairo_font_map_.clear();
+				}
+			};
 
-      std::pair<cairo_font_map_type&, std::mutex&> get_cairo_font_map()
-      {
-         static cairo_font_map_type cairo_font_map_;
-         static std::mutex cairo_font_map_mutex_;
+			static cleanup cleanup_;
+			return { cairo_font_map_, cairo_font_map_mutex_ };
+		}
 
-         struct cleanup
-         {
-            ~cleanup()
-            {
-               std::lock_guard<std::mutex> lock(cairo_font_map_mutex_);
-               for (auto [key, scaled_font] : cairo_font_map_)
-                  cairo_font_face_destroy(scaled_font);
-               cairo_font_map_.clear();
-            }
-         };
+		font_constants::weight_enum map_fc_weight(font_constants::weight_enum w)
+		{
+			enum class fc : font_constants::font_enum_type
+			{
+				thin                = 0,
+				extra_light         = 40,
+				light               = 50,
+				semi_light          = 55,
+				book                = 75,
+				normal              = 80,
+				medium              = 100,
+				semi_bold           = 180,
+				bold                = 200,
+				extra_bold          = 205,
+				black               = 210,
+				max                 = 220
+			};
 
-         static cleanup cleanup_;
-         return { cairo_font_map_, cairo_font_map_mutex_ };
-      }
+			using font_constants::weight_enum;
 
-      int map_fc_weight(int w)
-      {
-         enum
-         {
-            fc_thin            = 0,
-            fc_extralight      = 40,
-            fc_light           = 50,
-            fc_semilight       = 55,
-            fc_book            = 75,
-            fc_normal          = 80,
-            fc_medium          = 100,
-            fc_semibold        = 180,
-            fc_bold            = 200,
-            fc_extrabold       = 205,
-            fc_black           = 210
-         };
+			auto&& map = [](const weight_enum& min_a, const weight_enum& max_a, const fc& min_b, const fc& max_b, const weight_enum& val)
+			{
+				return lerp<font_constants::weight_enum>(std::forward<const weight_enum&>(min_a), std::forward<const weight_enum&>(max_a), (val - min_b)/(max_b - min_b));
+			};
 
-         auto&& map = [](auto mina, auto maxa, auto minb, auto maxb, auto val)
-         {
-            return lerp(static_cast<double>(mina), static_cast<double>(maxa), (val-minb)/(maxb-minb));
-         };
+			if (w < fc::extra_light)
+				return map(weight_enum::thin, weight_enum::extra_light, fc::thin, fc::extra_light, w);
+			if (w < fc::light)
+				return map(weight_enum::extra_light, weight_enum::light, fc::extra_light, fc::light, w);
+			if (w < fc::normal)
+				return map(weight_enum::light, weight_enum::normal, fc::light, fc::normal, w);
+			if (w < fc::medium)
+				return map(weight_enum::normal, weight_enum::medium, fc::normal, fc::medium, w);
+			if (w < fc::semi_bold)
+				return map(weight_enum::medium, weight_enum::semi_bold, fc::medium, fc::semi_bold, w);
+			if (w < fc::bold)
+				return map(weight_enum::semi_bold, weight_enum::bold, fc::semi_bold, fc::bold, w);
+			if (w < fc::extra_bold)
+				return map(weight_enum::bold, weight_enum::extra_bold, fc::bold, fc::extra_bold, w);
+			if (w < fc::black)
+				return map(weight_enum::extra_bold, weight_enum::black, fc::extra_bold, fc::black, w);
+			return map(weight_enum::black, weight_enum::ultra_black, fc::black, fc::max, 220 > w ? w : static_cast<weight_enum>(220));
+		}
 
-         namespace fc = font_constants;
+		struct font_entry
+		{
+			font_entry(FcPattern* pat, const FcChar8* full_name, const FcChar8* file)
+				:
+				  pattern(fc::pattern_shallow_copy_tag{}, *pat),
+				  full_name(reinterpret_cast<char const*>(full_name)),
+				  file(reinterpret_cast<char const*>(file))
+			{
+				if (auto w = pattern.get_weight(); w != font_constants::unknown_enum)
+					weight = map_fc_weight(w); // map the weight (normalized 0 to 100)
+				else
+					weight = font_constants::weight_enum::normal;
 
-         if (w < fc_extralight)
-            return map(fc::weight_enum::thin, fc::weight_enum::extra_light, fc_thin, fc_extralight, w);
-         if (w < fc_light)
-            return map(fc::weight_enum::extra_light, fc::weight_enum::light, fc_extralight, fc_light, w);
-         if (w < fc_normal)
-            return map(fc::weight_enum::light, fc::weight_enum::normal, fc_light, fc_normal, w);
-         if (w < fc_medium)
-            return map(fc::weight_enum::normal, fc::weight_enum::medium, fc_normal, fc_medium, w);
-         if (w < fc_semibold)
-            return map(fc::weight_enum::medium, fc::weight_enum::semi_bold, fc_medium, fc_semibold, w);
-         if (w < fc_bold)
-            return map(fc::weight_enum::semi_bold, fc::weight_enum::bold, fc_semibold, fc_bold, w);
-         if (w < fc_extrabold)
-            return map(fc::weight_enum::bold, fc::weight_enum::extra_bold, fc_bold, fc_extrabold, w);
-         if (w < fc_black)
-            return map(fc::weight_enum::extra_bold, fc::weight_enum::black, fc_extrabold, fc_black, w);
-         return map(fc::weight_enum::black, 100, fc_black, 220, std::min(w, 220));
-      }
+				if (auto s = pattern.get_slant(); s != font_constants::unknown_enum)
+					slant = static_cast<font_constants::slant_enum>((s * 100) / 110); // normalize 0 to 100
+				else
+					slant = font_constants::slant_enum::normal;
 
-      struct font_entry
-      {
-         font_entry(FcPattern* pat, FcChar8 const* full_name, FcChar8 const* file)
-         : pattern(fc::pattern_shallow_copy_tag{}, *pat)
-         , full_name(reinterpret_cast<char const*>(full_name))
-         , file(reinterpret_cast<char const*>(file))
-         {
-            if (auto w = pattern.get_weight(); w)
-               weight = static_cast<font_constants::weight_enum>(map_fc_weight(*w)); // map the weight (normalized 0 to 100)
-            else
-               weight = font_constants::weight_enum::normal;
+				if (auto w = pattern.get_width(); w != font_constants::unknown_enum)
+					stretch = static_cast<font_constants::stretch_enum>((w * 100) / 200); // normalize 0 to 100
+				else
+					stretch = font_constants::stretch_enum::normal;
+			}
 
-            if (auto s = pattern.get_slant(); s)
-               slant = static_cast<font_constants::slant_enum>((*s * 100) / 110); // normalize 0 to 100
-            else
-               slant = font_constants::slant_enum::normal;
-
-            if (auto w = pattern.get_width(); w)
-               stretch = static_cast<font_constants::stretch_enum>((*w * 100) / 200); // normalize 0 to 100
-            else
-               stretch = font_constants::stretch_enum::normal;
-         }
-
-         fc::pattern pattern;
-         std::string full_name;
-         std::string file;
-	      font_constants::weight_enum weight;
-	      font_constants::slant_enum slant;
-	      font_constants::stretch_enum stretch;
-      };
+			fc::pattern pattern;
+			std::string full_name;
+			std::string file;
+			font_constants::weight_enum weight;
+			font_constants::slant_enum slant;
+			font_constants::stretch_enum stretch;
+		};
 
       using font_map_type = std::map<std::string, std::vector<font_entry>>;
       font_map_type& font_map()
@@ -700,6 +695,6 @@ namespace cycfi { namespace elements
       if (font_handle)
          cairo_font_face_destroy(font_handle);
    }
-}}
+}
 
 

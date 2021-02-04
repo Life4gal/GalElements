@@ -23,7 +23,7 @@ namespace cycfi::elements
 	 *
 	 *      <del>std::array<CoordinateType, (1 | EnumMax)> replace std::array<CoordinateType, static_cast<size_t>(EnumMax)> also supported</del>
 	 */
-	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator|(const EnumType& lhs, const Enum& rhs)
 	{
 		// using EnumType | EnumType
@@ -46,7 +46,7 @@ namespace cycfi::elements
 	 *      ......
 	 *      Enum another_enum = enum | some_enum_type_val;
 	 */
-	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr Enum operator|(const Enum& lhs, const EnumType& rhs)
 	{
 		// forward to EnumType operator|(const EnumType& lhs, const Enum& rhs)
@@ -77,7 +77,7 @@ namespace cycfi::elements
 	 *          }
 	 *      }
 	 */
-	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>>
 	constexpr Enum operator |(const Enum& lhs, const Enum& rhs)
 	{
 		// using EnumType | EnumType
@@ -89,7 +89,7 @@ namespace cycfi::elements
 	 * only flag |= enum operator is valid
 	 * use enum |= flag is unreasonable
 	 */
-	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator|=(EnumType& lhs, const Enum& rhs)
 	{
 		// forward to EnumType operator|(const EnumType& lhs, const Enum& rhs)
@@ -113,7 +113,7 @@ namespace cycfi::elements
 	 *      ......
 	 *      EnumType another_flag = flag & some_enum;
 	 */
-	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator&(const EnumType& lhs, const Enum& rhs)
 	{
 		// using EnumType & EnumType
@@ -136,7 +136,7 @@ namespace cycfi::elements
 	 *      ......
 	 *      Enum another_enum = enum & some_enum_type_val;
 	 */
-	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr Enum operator&(const Enum& lhs, const EnumType& rhs)
 	{
 		// forward to EnumType operator&(const EnumType& lhs, const Enum& rhs)
@@ -167,7 +167,7 @@ namespace cycfi::elements
 	 *          }
 	 *      }
 	 */
-	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>>
 	constexpr Enum operator&(const Enum& lhs, const Enum& rhs)
 	{
 		// using EnumType & EnumType
@@ -179,34 +179,166 @@ namespace cycfi::elements
 	 * only flag &= enum operator is valid
 	 * use enum &= flag is unreasonable
 	 */
-	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator&=(EnumType& lhs, const Enum& rhs)
 	{
 		return (lhs = static_cast<EnumType>(lhs & static_cast<EnumType>(rhs)));
 	}
 
-	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator-(const EnumType& lhs, const Enum& rhs)
 	{
 		return lhs - static_cast<EnumType>(rhs);
 	}
 
-	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr EnumType operator-(const Enum& lhs, const EnumType& rhs)
+	{
+		return lhs - static_cast<EnumType>(rhs);
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator-=(EnumType& lhs, const Enum& rhs)
 	{
 		return (lhs -= static_cast<EnumType>(rhs));
 	}
 
-	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator+(const EnumType& lhs, const Enum& rhs)
 	{
 		return lhs + static_cast<EnumType>(rhs);
 	}
 
-	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_same_v<EnumType, std::underlying_type_t<Enum>>>>
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr EnumType operator+(const Enum& lhs, const EnumType& rhs)
+	{
+		return lhs + static_cast<EnumType>(rhs);
+	}
+
+	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator+=(EnumType& lhs, const Enum& rhs)
 	{
 		return (lhs += static_cast<EnumType>(rhs));
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1> && std::is_enum_v<Enum2>>>
+	constexpr EnumType operator-(const Enum1& lhs, const Enum2& rhs)
+	{
+		return static_cast<EnumType>(static_cast<EnumType>(lhs) - rhs);
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1> && std::is_enum_v<Enum2>>>
+	constexpr EnumType operator+(const Enum1& lhs, const Enum2& rhs)
+	{
+		return static_cast<EnumType>(static_cast<EnumType>(lhs) + rhs);
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator>(const EnumType& lhs, const Enum& rhs)
+	{
+		return lhs > static_cast<EnumType>(rhs);
+	}
+
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator>(const Enum& lhs, const EnumType& rhs)
+	{
+		return static_cast<EnumType>(lhs) > rhs;
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1>>, typename = std::enable_if_t<std::is_enum_v<Enum2>>>
+	constexpr bool operator>(const Enum1& lhs, const Enum2& rhs)
+	{
+		return static_cast<EnumType>(lhs) > static_cast<EnumType>(rhs);
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator==(const EnumType& lhs, const Enum& rhs)
+	{
+		return lhs == static_cast<EnumType>(rhs);
+	}
+
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator==(const Enum& lhs, const EnumType& rhs)
+	{
+		return static_cast<EnumType>(lhs) == rhs;
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1>>, typename = std::enable_if_t<std::is_enum_v<Enum2>>>
+	constexpr bool operator==(const Enum1& lhs, const Enum2& rhs)
+	{
+		return static_cast<EnumType>(lhs) == static_cast<EnumType>(rhs);
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator!=(const EnumType& lhs, const Enum& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator!=(const Enum& lhs, const EnumType& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1>>, typename = std::enable_if_t<std::is_enum_v<Enum2>>>
+	constexpr bool operator!=(const Enum1& lhs, const Enum2& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator<(const EnumType& lhs, const Enum& rhs)
+	{
+		return !(lhs > rhs || lhs == rhs);
+	}
+
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr bool operator<(const Enum& lhs, const EnumType& rhs)
+	{
+		return !(lhs > rhs || lhs == rhs);
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1>>, typename = std::enable_if_t<std::is_enum_v<Enum2>>>
+	constexpr bool operator<(const Enum1& lhs, const Enum2& rhs)
+	{
+		return !(lhs > rhs || lhs == rhs);
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr auto operator*(const EnumType& lhs, const Enum& rhs)
+	{
+		return lhs * static_cast<EnumType>(rhs);
+	}
+
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr auto operator*(const Enum& lhs, const EnumType& rhs)
+	{
+		return rhs * lhs;
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1>>, typename = std::enable_if_t<std::is_enum_v<Enum2>>>
+	constexpr auto operator*(const Enum1& lhs, const Enum2& rhs)
+	{
+		return static_cast<EnumType>(lhs) * rhs;
+	}
+
+	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr auto operator/(const EnumType& lhs, const Enum& rhs)
+	{
+		return lhs / static_cast<EnumType>(rhs);
+	}
+
+	template <typename Enum, typename EnumType, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
+	constexpr auto operator/(const Enum& lhs, const EnumType& rhs)
+	{
+		return 1 / (rhs / lhs);
+	}
+
+	template<typename Enum1, typename Enum2, typename EnumType = std::common_type_t<std::underlying_type_t<Enum1>, std::underlying_type_t<Enum2>>, typename = std::enable_if_t<std::is_enum_v<Enum1>>, typename = std::enable_if_t<std::is_enum_v<Enum2>>>
+	constexpr auto operator/(const Enum1& lhs, const Enum2& rhs)
+	{
+		return static_cast<EnumType>(lhs) / rhs;
 	}
 }
 
