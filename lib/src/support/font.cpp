@@ -6,6 +6,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #include <elements/support/font.hpp>
+#include <elements/support/enum_operator.hpp>
 #include <infra/assert.hpp>
 
 #include <cairo.h>
@@ -73,21 +74,18 @@ namespace cycfi::elements
 				>
 		constexpr RetType lerp(const T1& start, const T2& end, const T3& value)
 		{
-			return (start * (static_cast<RetType>(1) - value)) + (end * value);
+			return (start * (1 - value)) + (end * value);
 		}
 
 		// for enum
 		template<typename RetType, typename Enum, typename T, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<EnumType, T>>>
 		constexpr RetType lerp(const Enum& start, const Enum& end, const T& value)
 		{
-			return static_cast<RetType>(
-					(static_cast<EnumType>(start) * (1 - value)) +
-					(static_cast<EnumType>(end) * value)
-					);
+			return static_cast<RetType>((start * (1 - value)) +(end * value));
 		}
 
 #ifndef __APPLE__
-		auto const& cairo_user_data_key()
+		const auto & cairo_user_data_key()
 		{
 			static const cairo_user_data_key_t key = {};
 			return key;
@@ -131,7 +129,7 @@ namespace cycfi::elements
 					return _config_ptr.get();
 				}
 
-				bool app_font_add_dir(FcChar8 const* path)
+				bool app_font_add_dir(const FcChar8 * path)
                 {
 					FcBool status = FcConfigAppFontAddDir(_config_ptr.get(), path);
 					return status == FcTrue;
@@ -172,7 +170,7 @@ namespace cycfi::elements
 						FcPatternDestroy(_pattern);
 				}
 
-				pattern(pattern const& other) : pattern(pattern_shallow_copy_tag{}, *other._pattern) {}
+				pattern(const pattern& other) : pattern(pattern_shallow_copy_tag{}, *other._pattern) {}
 
 				pattern& operator=(pattern other) noexcept
 				{
@@ -231,7 +229,7 @@ namespace cycfi::elements
 			template <typename... Args>
 			explicit object_set(Args&&... args)
 			{
-				static_assert((std::is_same_v<std::decay_t<Args>, char const*> && ...));
+				static_assert((std::is_same_v<std::decay_t<Args>, const char*> && ...));
 				_set = FcObjectSetBuild(std::forward<Args>(args)..., nullptr);
 			}
 
@@ -241,8 +239,8 @@ namespace cycfi::elements
 					FcObjectSetDestroy(_set);
 			}
 
-			object_set(object_set const& other) = delete;
-			object_set& operator=(object_set const& other) = delete;
+			object_set(const object_set & other) = delete;
+			object_set& operator=(const object_set & other) = delete;
 
 			object_set(object_set&& other) noexcept : object_set()
             {
@@ -362,8 +360,8 @@ namespace cycfi::elements
 			font_entry(FcPattern* pat, const FcChar8* full_name, const FcChar8* file)
 				:
 				  pattern(fc::pattern_shallow_copy_tag{}, *pat),
-				  full_name(reinterpret_cast<char const*>(full_name)),
-				  file(reinterpret_cast<char const*>(file))
+				  full_name(reinterpret_cast<const char *>(full_name)),
+				  file(reinterpret_cast<const char *>(file))
 			{
 				if (auto w = pattern.get_weight(); w != font_constants::unknown_enum)
 					weight = map_fc_weight(w); // map the weight (normalized 0 to 100)
@@ -389,312 +387,311 @@ namespace cycfi::elements
 			font_constants::stretch_enum stretch;
 		};
 
-      using font_map_type = std::map<std::string, std::vector<font_entry>>;
-      font_map_type& font_map()
-      {
-         static font_map_type font_map_;
-         return font_map_;
-      }
+		using font_map_type = std::map<std::string, std::vector<font_entry>>;
+		font_map_type& font_map()
+		{
+			static font_map_type font_map_;
+			return font_map_;
+		}
 
-      void init_font_map()
-      {
-         std::vector<fs::path> paths = font_paths();
+		void init_font_map()
+		{
+			std::vector<fs::path> paths = font_paths();
 
 #ifdef __APPLE__
-         paths.push_back(get_user_fonts_directory());
+			paths.push_back(get_user_fonts_directory());
 #else
-         if (paths.empty())
-            paths.push_back(fs::current_path() / "resources");
+			if (paths.empty())
+				paths.push_back(fs::current_path() / "resources");
 #if defined(ELEMENTS_HOST_UI_LIBRARY_WIN32)
-         TCHAR windir[MAX_PATH];
-         GetWindowsDirectory(windir, MAX_PATH);
-         paths.push_back(fs::path(windir) / "fonts");
+			TCHAR windir[MAX_PATH];
+			GetWindowsDirectory(windir, MAX_PATH);
+			paths.push_back(fs::path(windir) / "fonts");
 #endif
 #endif
-         fc::config& conf = fc::instance();
+			fc::config& conf = fc::instance();
 
-         for (auto& path : paths)
-            conf.app_font_add_dir(reinterpret_cast<FcChar8 const*>(path.generic_string().c_str()));
+			for (auto& path : paths)
+				conf.app_font_add_dir(reinterpret_cast<const FcChar8 *>(path.generic_string().c_str()));
 
-         fc::pattern pat(fc::pattern_empty_tag{});
-         fc::object_set os(FC_FAMILY, FC_FULLNAME, FC_WIDTH, FC_WEIGHT, FC_SLANT, FC_FILE);
-         fc::font_set_ptr fs = fc::font_list(conf.get(), pat, os);
+			fc::pattern pat(fc::pattern_empty_tag{});
+			fc::object_set os(FC_FAMILY, FC_FULLNAME, FC_WIDTH, FC_WEIGHT, FC_SLANT, FC_FILE);
+			fc::font_set_ptr fs = fc::font_list(conf.get(), pat, os);
 
-         for (int i = 0; i < fs->nfont; ++i)
-         {
-            FcPattern* font = fs->fonts[i];
-            FcChar8 *file, *family, *full_name;
-            if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch &&
-               FcPatternGetString(font, FC_FAMILY, 0, &family) == FcResultMatch &&
-               FcPatternGetString(font, FC_FULLNAME, 0, &full_name) == FcResultMatch
-            )
-            {
-               std::string key = reinterpret_cast<char const*>(family);
-               trim(key);
+			for (int i = 0; i < fs->nfont; ++i)
+			{
+				FcPattern* font = fs->fonts[i];
+				FcChar8 *file, *family, *full_name;
+				if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch &&
+					FcPatternGetString(font, FC_FAMILY, 0, &family) == FcResultMatch &&
+					FcPatternGetString(font, FC_FULLNAME, 0, &full_name) == FcResultMatch
+					)
+				{
+					std::string key = reinterpret_cast<const char *>(family);
+					trim(key);
 
-               font_map()[key].push_back(font_entry(font, full_name, file));
-            }
-         }
-      }
+					font_map()[key].push_back(font_entry(font, full_name, file));
+				}
+			}
+		}
 
-      font_entry const* match(font_descriptor descr)
-      {
-         if (font_map().empty())
-            init_font_map();
+		const font_entry * match(font_descriptor descriptor)
+		{
+			if (font_map().empty())
+				init_font_map();
 
-         std::istringstream str(std::string{ descr.font_families});
-         std::string family;
-         while (getline(str, family, ','))
-         {
-            trim(family);
-            if (auto i = font_map().find(family); i != font_map().end())
-            {
-               int min = 10000;
-               std::vector<font_entry>::const_iterator best_match = i->second.end();
-               for (auto j = i->second.begin(); j != i->second.end(); ++j)
-               {
-                  auto const& item = *j;
+			std::istringstream str(std::string{descriptor.font_families});
+			std::string family;
+			while (getline(str, family, ','))
+			{
+				trim(family);
+				if (auto i = font_map().find(family); i != font_map().end())
+				{
+					int min = 10000;
+					auto best_match = i->second.end();
+					for (auto j = i->second.begin(); j != i->second.end(); ++j)
+					{
+						const auto & item = *j;
 
-                  // Get biased score (lower is better). Give `slant` attribute
-                  // the highest bias (3.0), followed by `weight` (1.0) and then
-                  // `stretch` (0.25).
-                  auto diff =
-                     (std::abs(int(descr.weight) - int(item.weight)) * 1.0) +
-                     (std::abs(int(descr.slant) - int(item.slant)) * 3.0) +
-                     (std::abs(int(descr.stretch) - int(item.stretch)) * 0.25)
-                     ;
-                  if (diff < min)
-                  {
-                     min = diff;
-                     best_match = j;
-                  }
-               }
-               if (best_match != i->second.end())
-                  return &*best_match;
-            }
-         }
-         return nullptr;
-      }
+						// Get biased score (lower is better). Give `slant` attribute
+						// the highest bias (3.0), followed by `weight` (1.0) and then
+						// `stretch` (0.25).
+						auto diff =
+								(std::abs(int(descriptor.weight) - int(item.weight)) * 1.0) +
+								(std::abs(int(descriptor.slant) - int(item.slant)) * 3.0) +
+								(std::abs(int(descriptor.stretch) - int(item.stretch)) * 0.25);
+						if (diff < min)
+						{
+							min = diff;
+							best_match = j;
+						}
+					}
+					if (best_match != i->second.end())
+						return &*best_match;
+				}
+			}
+			return nullptr;
+		}
 
 #ifndef __APPLE__
-      class free_type_face
-      {
-      public:
-         free_type_face() = default;
+		class free_type_face
+		{
+		public:
+			free_type_face() : _face(nullptr) {}
 
-         free_type_face(FT_Face face)
-         : _face(face) {}
+			explicit free_type_face(FT_Face face) : _face(face) {}
 
-         ~free_type_face()
-         {
-            if (_face)
-               FT_Done_Face(_face);
-         }
+			~free_type_face()
+			{
+				if (_face)
+					FT_Done_Face(_face);
+			}
 
-         free_type_face(free_type_face const& other) = delete;
-         free_type_face& operator=(free_type_face const& other) = delete;
+			free_type_face(const free_type_face & other) = delete;
+			free_type_face& operator=(const free_type_face & other) = delete;
 
-         free_type_face(free_type_face&& other) noexcept
-         : free_type_face()
-         {
-            *this = std::move(other);
-         }
+			free_type_face(free_type_face&& other) noexcept : free_type_face()
+			{
+				*this = std::move(other);
+			}
 
-         free_type_face& operator=(free_type_face&& other) noexcept
-         {
-            std::swap(_face, other._face);
-            return *this;
-         }
+			free_type_face& operator=(free_type_face&& other) noexcept
+			{
+				std::swap(_face, other._face);
+				return *this;
+			}
 
-         FT_Face handle()
-         {
-            return _face;
-         }
+			FT_Face handle()
+			{
+				return _face;
+			}
 
-         FT_Face release()
-         {
-            return std::exchange(_face, nullptr);
-         }
+			FT_Face release()
+			{
+				return std::exchange(_face, nullptr);
+			}
 
-         explicit operator bool() const
-         {
-            return _face != nullptr;
-         }
+			explicit operator bool() const
+			{
+				return _face != nullptr;
+			}
 
-      private:
-         FT_Face _face = nullptr;
-      };
+		private:
+			FT_Face _face;
+		};
 
-      void destroy_free_type_face(void* face)
-      {
-         FT_Done_Face(reinterpret_cast<FT_Face>(face));
-      }
 
-      class free_type_library
-      {
-      public:
-         free_type_library()
-         {
-            FT_Error status = FT_Init_FreeType(&_ft_lib);
-            CYCFI_ASSERT(status == 0, "Error: failed to initialize free type library.");
-         }
+		void destroy_free_type_face(void* face)
+		{
+			FT_Done_Face(reinterpret_cast<FT_Face>(face));
+		}
 
-         ~free_type_library()
-         {
-            if (!_ft_lib)
-               return;
+		class free_type_library
+		{
+		public:
+			free_type_library()
+			{
+				FT_Error status = FT_Init_FreeType(&_ft_lib);
+				CYCFI_ASSERT(status == 0, "Error: failed to initialize free type library.");
+			}
 
-            FT_Error status = FT_Done_FreeType(_ft_lib);
-            CYCFI_ASSERT(status == 0, "Error: failed to destroy free type library.");
-         }
+			~free_type_library()
+			{
+				if (!_ft_lib)
+					return;
 
-         free_type_library(free_type_library const& other) = delete;
-         free_type_library& operator=(free_type_library const& other) = delete;
+				FT_Error status = FT_Done_FreeType(_ft_lib);
+				CYCFI_ASSERT(status == 0, "Error: failed to destroy free type library.");
+			}
 
-         free_type_library(free_type_library&& other) noexcept
-         {
-            swap(*this, other);
-         }
+			free_type_library(const free_type_library & other) = delete;
+			free_type_library& operator=(const free_type_library & other) = delete;
 
-         free_type_library& operator=(free_type_library&& other) noexcept
-         {
-            swap(*this, other);
-            return *this;
-         }
+			free_type_library(free_type_library&& other) noexcept
+			{
+				swap(*this, other);
+			}
 
-         friend void swap(free_type_library& lhs, free_type_library& rhs) noexcept
-         {
-            std::swap(lhs._ft_lib, rhs._ft_lib);
-         }
+			free_type_library& operator=(free_type_library&& other) noexcept
+			{
+				swap(*this, other);
+				return *this;
+			}
 
-         free_type_face load_face(char const* font_path)
-         {
-            FT_Face ft_face;
-            FT_Error ft_status = FT_New_Face(_ft_lib, font_path, 0, &ft_face);
+			friend void swap(free_type_library& lhs, free_type_library& rhs) noexcept
+			{
+				std::swap(lhs._ft_lib, rhs._ft_lib);
+			}
 
-            if (ft_status == 0)
-               return free_type_face(ft_face);
-            else
-               return free_type_face(nullptr);
-         }
+			free_type_face load_face(const char * font_path)
+			{
+				FT_Face ft_face;
+				FT_Error ft_status = FT_New_Face(_ft_lib, font_path, 0, &ft_face);
 
-         [[nodiscard]]
-         cairo_font_face_t* load_font(char const* font_path)
-         {
-            free_type_face ft_face = load_face(font_path);
-            if (!ft_face)
-               return nullptr;
+				if (ft_status == 0)
+					return free_type_face(ft_face);
+				else
+					return free_type_face(nullptr);
+			}
 
-            cairo_font_face_t* cairo_face = cairo_ft_font_face_create_for_ft_face(ft_face.handle(), 0);
-            if (cairo_face == nullptr)
-               return nullptr;
+			[[nodiscard]] cairo_font_face_t* load_font(const char * font_path)
+			{
+				free_type_face ft_face = load_face(font_path);
+				if (!ft_face)
+					return nullptr;
 
-            // extend the freetype font face lifetime to cairo's font face lifetime
-            cairo_status_t cairo_status = CAIRO_STATUS_SUCCESS;
-            cairo_user_data_key_t const& key = cairo_user_data_key();
-            if (cairo_font_face_get_user_data(cairo_face, &key) != ft_face.handle())
-            {
-               cairo_status = cairo_font_face_set_user_data(
-                  cairo_face, &key, ft_face.handle(), &destroy_free_type_face);
-            }
+				cairo_font_face_t* cairo_face = cairo_ft_font_face_create_for_ft_face(ft_face.handle(), 0);
+				if (cairo_face == nullptr)
+					return nullptr;
 
-            if (cairo_status == CAIRO_STATUS_SUCCESS)
-            {
-               ft_face.release();
-            }
-            else
-            {
-               cairo_font_face_destroy(cairo_face);
-               return nullptr;
-            }
+				// extend the freetype font face lifetime to cairo's font face lifetime
+				cairo_status_t cairo_status = CAIRO_STATUS_SUCCESS;
+				const cairo_user_data_key_t & key = cairo_user_data_key();
+				if (cairo_font_face_get_user_data(cairo_face, &key) != ft_face.handle())
+				{
+					cairo_status = cairo_font_face_set_user_data(
+							cairo_face,
+							&key,
+							ft_face.handle(),
+							&destroy_free_type_face
+							);
+				}
 
-            return cairo_face;
-         }
+				if (cairo_status == CAIRO_STATUS_SUCCESS)
+				{
+					ft_face.release();
+				}
+				else
+				{
+					cairo_font_face_destroy(cairo_face);
+					return nullptr;
+				}
 
-      private:
-         FT_Library _ft_lib = nullptr;
-      };
+				return cairo_face;
+			}
+
+		private:
+			FT_Library _ft_lib = nullptr;
+		};
 #endif
-   }
+	}
 
-   std::vector<fs::path>& font_paths()
-   {
-      static std::vector<fs::path> _paths;
-      return _paths;
-   }
+	std::vector<fs::path>& font_paths()
+	{
+		static std::vector<fs::path> _paths;
+		return _paths;
+	}
 
-   font::font(font_descriptor descr)
-   {
+	font::font(font_descriptor descriptor)
+	{
 #ifndef __APPLE__
-      static free_type_library ft_lib;
+		static free_type_library ft_lib;
 #endif
 
-      auto match_ptr = match(descr);
-      if (match_ptr)
-      {
-         auto [cairo_font_map, cairo_font_map_mutex] = get_cairo_font_map();
-         std::lock_guard<std::mutex> lock(cairo_font_map_mutex);
-         if (auto it = cairo_font_map.find(match_ptr->full_name); it != cairo_font_map.end())
-         {
-			 font_handle = cairo_font_face_reference(it->second);
-         }
-         else
-         {
+		auto match_ptr = match(descriptor);
+		if (match_ptr)
+		{
+			auto [cairo_font_map, cairo_font_map_mutex] = get_cairo_font_map();
+			std::lock_guard<std::mutex> lock(cairo_font_map_mutex);
+			if (auto it = cairo_font_map.find(match_ptr->full_name); it != cairo_font_map.end())
+			{
+				font_handle = cairo_font_face_reference(it->second);
+			}
+			else
+			{
 #ifdef __APPLE__
 
-            auto cfstr = CFStringCreateWithCString(
-               kCFAllocatorDefault
-             , match_ptr->full_name.c_str()
-             , kCFStringEncodingUTF8
-            );
-            auto cgfont = CGFontCreateWithFontName(cfstr);
-            font_handle = cairo_quartz_font_face_create_for_cgfont(cgfont);
-            if (cgfont)
-               CFRelease(cgfont);
-            if (cfstr)
-               CFRelease(cfstr);
+				auto cfstr = CFStringCreateWithCString(
+						kCFAllocatorDefault,
+						match_ptr->full_name.c_str(),
+						kCFStringEncodingUTF8
+						);
+				auto cgfont = CGFontCreateWithFontName(cfstr);
+				font_handle = cairo_quartz_font_face_create_for_cgfont(cgfont);
+				if (cgfont)
+					CFRelease(cgfont);
+				if (cfstr)
+					CFRelease(cfstr);
 #else
-			 font_handle = ft_lib.load_font(match_ptr->file.c_str());
+				font_handle = ft_lib.load_font(match_ptr->file.c_str());
 #endif
 
-            if (font_handle)
-               cairo_font_map[match_ptr->full_name] = cairo_font_face_reference(font_handle);
-         }
-      }
-      else
-      {
-		  font_handle = nullptr;
-      }
-   }
+				if (font_handle)
+					cairo_font_map[match_ptr->full_name] = cairo_font_face_reference(font_handle);
+			}
+		}
+		else
+		{
+			font_handle = nullptr;
+		}
+	}
 
-   font::font(font const& rhs)
-   {
-	   font_handle = cairo_font_face_reference(rhs.font_handle);
-   }
+	font::font(const font & rhs)
+	{
+		font_handle = cairo_font_face_reference(rhs.font_handle);
+	}
 
-   font& font::operator=(font const& rhs)
-   {
-      if (&rhs != this)
-		  font_handle = cairo_font_face_reference(rhs.font_handle);
-      return *this;
-   }
+	font& font::operator=(const font & rhs)
+	{
+		if (&rhs != this)
+			font_handle = cairo_font_face_reference(rhs.font_handle);
+		return *this;
+	}
 
-   font::font(font&& rhs) noexcept
-   {
-      std::swap(font_handle, rhs.font_handle);
-   }
+	font::font(font&& rhs) noexcept
+	{
+		std::swap(font_handle, rhs.font_handle);
+	}
 
-   font& font::operator=(font&& rhs) noexcept
-   {
-      std::swap(font_handle, rhs.font_handle);
-      return *this;
-   }
+	font& font::operator=(font&& rhs) noexcept
+	{
+		std::swap(font_handle, rhs.font_handle);
+		return *this;
+	}
 
-   font::~font()
-   {
-      if (font_handle)
-         cairo_font_face_destroy(font_handle);
-   }
+	font::~font()
+	{
+		if (font_handle)
+			cairo_font_face_destroy(font_handle);
+	}
 }
-
-

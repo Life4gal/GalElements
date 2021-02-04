@@ -4,7 +4,6 @@
 #include <infra/string_view.hpp>
 #include <infra/filesystem.hpp>
 #include <vector>
-#include <elements/support/enum_operator.hpp>
 
 extern "C"
 {
@@ -54,185 +53,188 @@ namespace cycfi::elements
 		};
 	}
 
+	class font;
 	struct font_descriptor
 	{
-		[[maybe_unused]] constexpr void clear_to_normal()
+		[[nodiscard]] font build_font() const;
+
+		[[maybe_unused]] constexpr void clear_to_normal() noexcept
 		{
 			weight = font_constants::weight_enum::normal;
 			slant = font_constants::slant_enum::normal;
 			stretch = font_constants::stretch_enum::normal;
 		}
 
-		constexpr void set_weight(font_constants::weight_enum _weight)
+		constexpr void set_weight(font_constants::weight_enum _weight) noexcept
 		{
 			weight = _weight;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_thin() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_thin() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::thin);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_extra_light() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_extra_light() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::extra_light);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_light() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_light() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::light);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_normal() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_normal() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::normal);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_medium() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_medium() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::medium);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_semi_bold() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_semi_bold() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::semi_bold);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_bold() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_bold() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::bold);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_extra_bold() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_extra_bold() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::extra_bold);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_black() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_black() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::black);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_extra_black() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_extra_black() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::extra_black);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_ultra_black() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_weight_ultra_black() const noexcept
 		{
 			auto f = *this;
 			f.set_weight(font_constants::weight_enum::ultra_black);
 			return f;
 		}
 
-		constexpr void set_slant(font_constants::slant_enum _slant)
+		constexpr void set_slant(font_constants::slant_enum _slant) noexcept
 		{
 			slant = _slant;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_slant_normal() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_slant_normal() const noexcept
 		{
 			auto f = *this;
 			f.set_slant(font_constants::slant_enum::normal);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_slant_italic() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_slant_italic() const noexcept
 		{
 			auto f = *this;
 			f.set_slant(font_constants::slant_enum::italic);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_slant_oblique() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_slant_oblique() const noexcept
 		{
 			auto f = *this;
 			f.set_slant(font_constants::slant_enum::oblique);
 			return f;
 		}
 
-		constexpr void set_stretch(font_constants::stretch_enum _stretch)
+		constexpr void set_stretch(font_constants::stretch_enum _stretch) noexcept
 		{
 			stretch = _stretch;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_ultra_condensed() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_ultra_condensed() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::ultra_condensed);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_extra_condensed() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_extra_condensed() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::extra_condensed);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_condensed() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_condensed() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::condensed);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_semi_condensed() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_semi_condensed() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::semi_condensed);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_normal() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_normal() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::normal);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_semi_expanded() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_semi_expanded() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::semi_expanded);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_expanded() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_expanded() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::expanded);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_extra_expanded() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor get_stretch_extra_expanded() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::extra_expanded);
 			return f;
 		}
 
-		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor ultra_expanded() const
+		[[maybe_unused]] [[nodiscard]] constexpr font_descriptor ultra_expanded() const noexcept
 		{
 			auto f = *this;
 			f.set_stretch(font_constants::stretch_enum::ultra_expanded);
@@ -248,13 +250,13 @@ namespace cycfi::elements
 	class font
 	{
 	public:
-		font() : font_handle(nullptr) {}
+		font() = default;
 
 		explicit font(font_descriptor descriptor);
-		font(font const& rhs);
+		font(const font& rhs);
 		font(font&& rhs) noexcept;
 		~font();
-		font& operator=(font const& rhs);
+		font& operator=(const font & rhs);
 		font& operator=(font&& rhs) noexcept;
 
 		explicit operator bool() const noexcept
@@ -264,8 +266,13 @@ namespace cycfi::elements
 
 	private:
 		friend class canvas;
-		cairo_font_face_t* font_handle;
+		cairo_font_face_t* font_handle = nullptr;
 	};
+
+	inline font font_descriptor::build_font() const
+	{
+		return font(*this);
+	}
 
 #ifdef __APPLE__
    fs::path get_user_fonts_directory();

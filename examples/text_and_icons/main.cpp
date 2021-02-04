@@ -128,7 +128,7 @@ auto make_basic_text()
       top_margin(20, pane("Labels",
          vtile(
             el(label("Hello, Universe. This is Elements.")
-               .font(font_descriptor{ "Open Sans" }.semi_bold())
+               .font(font_descriptor{ "Open Sans" }.get_weight_semi_bold().build_font())
                .font_color(colors::antique_white)
                .font_size(18)
             ),
