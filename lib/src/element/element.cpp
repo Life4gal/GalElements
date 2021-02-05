@@ -14,7 +14,7 @@ namespace cycfi { namespace elements
    ////////////////////////////////////////////////////////////////////////////
    view_limits element::limits(basic_context const& /* ctx */) const
    {
-      return full_limits;
+      return full_limits<view_limits::coordinate_type>;
    }
 
    view_stretch element::stretch() const

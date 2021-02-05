@@ -81,7 +81,9 @@ namespace cycfi { namespace elements
    inline view_limits halign_element<Subject>::limits(basic_context const& ctx) const
    {
       auto e_limits = this->subject().limits(ctx);
-      return { { e_limits.min.x, e_limits.min.y }, { full_extent, e_limits.max.y } };
+	  e_limits.max.x = full_extent<view_limits::coordinate_type>;
+	  return e_limits;
+//      return { { e_limits.min.x, e_limits.min.y }, { full_extent<view_limits::coordinate_type>, e_limits.max.y } };
    }
 
    template <typename Subject>
@@ -149,7 +151,9 @@ namespace cycfi { namespace elements
    inline view_limits valign_element<Subject>::limits(basic_context const& ctx) const
    {
       auto e_limits = this->subject().limits(ctx);
-      return { { e_limits.min.x, e_limits.min.y }, { e_limits.max.x, full_extent } };
+	  e_limits.max.y = full_extent<view_limits::coordinate_type>;
+	  return e_limits;
+//      return { { e_limits.min.x, e_limits.min.y }, { e_limits.max.x, full_extent<view_limits::coordinate_type> } };
    }
 
    template <typename Subject>

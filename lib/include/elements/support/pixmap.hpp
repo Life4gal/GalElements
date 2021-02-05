@@ -38,13 +38,12 @@ namespace cycfi::elements
 		template<typename Extent, typename T, typename = std::enable_if_t<std::is_convertible_v<Extent, size_type> && std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
 		explicit pixmap(basic_extent<Extent> size, T scale = 1) : pixmap(size.width, size.height, scale) {}
 
-		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
-		explicit pixmap(const char* filename, T scale = 1);
+		explicit pixmap(const char* filename, size_type scale = 1);
 
 		pixmap(pixmap const& rhs) = delete;
 		pixmap& operator=(pixmap const& rhs) = delete;
 
-		pixmap(pixmap&& rhs)  noexcept : _surface(std::exchange(rhs._surface, nullptr)) {}
+		pixmap(pixmap&& rhs) noexcept : _surface(std::exchange(rhs._surface, nullptr)) {}
 
 		pixmap& operator=(pixmap&& rhs) noexcept
 		{
@@ -63,7 +62,7 @@ namespace cycfi::elements
 		}
 
 		// todo
-		template<typename Extent = float>
+		template<typename Extent = extent::size_type>
 		[[nodiscard]] basic_extent<Extent> size() const
 		{
 			double scx;

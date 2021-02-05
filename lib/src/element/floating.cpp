@@ -11,7 +11,9 @@ namespace cycfi { namespace elements
    view_limits floating_element::limits(basic_context const& ctx) const
    {
       auto e_limits = this->subject().limits(ctx);
-      return { { e_limits.min.x, e_limits.min.y }, { full_extent, full_extent } };
+	  e_limits.re_limits<view_limits::init_side::max_x_max_y>(full_extent<view_limits::coordinate_type>, full_extent<view_limits::coordinate_type>);
+	  return e_limits;
+//      return { { e_limits.min.x, e_limits.min.y }, { full_extent<view_limits::coordinate_type>, full_extent<view_limits::coordinate_type> } };
    }
 
    void floating_element::prepare_subject(context& ctx)

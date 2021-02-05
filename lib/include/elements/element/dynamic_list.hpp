@@ -22,8 +22,9 @@ namespace cycfi { namespace elements
 
       struct limits
       {
+		  using size_type = float;
          float min = 0;
-         float max = full_extent;
+         float max = full_extent<float>;
       };
 
       virtual std::size_t     size() const = 0;
@@ -88,7 +89,7 @@ namespace cycfi { namespace elements
       using limits = cell_composer::limits;
 
       mutable float           _line_height = -1;
-      mutable limits          _width_limits = { -1, full_extent };
+      mutable limits          _width_limits = { -1, full_extent<limits::size_type> };
    };
 
    ////////////////////////////////////////////////////////////////////////////
@@ -261,7 +262,7 @@ namespace cycfi { namespace elements
    )
     : Base(std::forward<Rest>(rest)...)
     , _line_height{ line_height }
-    , _width_limits{ min_width, full_extent }
+    , _width_limits{ min_width, full_extent<cell_composer::limits::size_type> }
    {}
 
    template <typename Base>
@@ -298,7 +299,7 @@ namespace cycfi { namespace elements
    )
     : Base(std::forward<Rest>(rest)...)
     , _line_height{ -1 }
-    , _width_limits{ -1, full_extent }
+    , _width_limits{ -1, full_extent<cell_composer::limits::size_type> }
    {}
 
    template <typename Base>

@@ -118,7 +118,7 @@ namespace cycfi { namespace elements
 
       rect                    _dirty;
       rect                    _current_bounds;
-      view_limits             _current_limits = { { 0, 0 }, { full_extent, full_extent} };
+      view_limits             _current_limits;
       mouse_button            _current_button;
       bool                    _is_focus = false;
 

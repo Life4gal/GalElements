@@ -643,8 +643,8 @@ namespace cycfi { namespace elements
       l.min.y *= _scale;
       l.max.x *= _scale;
       l.max.y *= _scale;
-      clamp_max(l.max.x, full_extent);
-      clamp_max(l.max.y, full_extent);
+      clamp_max(l.max.x, full_extent<view_limits::coordinate_type>);
+      clamp_max(l.max.y, full_extent<view_limits::coordinate_type>);
       return l;
    }
 

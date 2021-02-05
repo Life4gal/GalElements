@@ -198,9 +198,11 @@ namespace cycfi { namespace elements
    view_limits scroller_base::limits(basic_context const& ctx) const
    {
       view_limits e_limits = subject().limits(ctx);
-      return view_limits{
-         { allow_hscroll() ? min_port_size : e_limits.min.x, allow_vscroll() ? min_port_size : e_limits.min.y },
-         { e_limits.max.x,                                   e_limits.max.y }
+      return {
+			  allow_hscroll() ? min_port_size : e_limits.min.x,
+			  allow_vscroll() ? min_port_size : e_limits.min.y,
+			  e_limits.max.x,
+			  e_limits.max.y
       };
    }
 
@@ -326,7 +328,7 @@ namespace cycfi { namespace elements
 
    bool scroller_base::click(context const& ctx, mouse_button btn)
    {
-      if (btn.state == mouse_button::left && has_scrollbars())
+      if (btn.state == mouse_button::what::left && has_scrollbars())
       {
          if (btn.down)
          {
@@ -342,7 +344,7 @@ namespace cycfi { namespace elements
 
    void scroller_base::drag(context const& ctx, mouse_button btn)
    {
-      if (btn.state == mouse_button::left &&
+      if (btn.state == mouse_button::what::left &&
          (_tracking == none || !reposition(ctx, btn.pos)))
          port_element::drag(ctx, btn);
    }

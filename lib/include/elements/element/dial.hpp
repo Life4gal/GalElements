@@ -98,7 +98,7 @@ namespace cycfi { namespace elements
    inline view_limits basic_knob_element<size>::limits(basic_context const& /* ctx */) const
    {
 	  auto pt = point{ float(size), float(size) };
-      return view_limits{ pt, pt };
+      return { pt, pt };
    }
 
    template <std::size_t size>
@@ -156,8 +156,8 @@ namespace cycfi { namespace elements
       sl.min.y += size;
       sl.max.y += size;
 
-      clamp_max(sl.max.x, full_extent);
-      clamp_max(sl.max.y, full_extent);
+      clamp_max(sl.max.x, full_extent<view_limits::coordinate_type>);
+      clamp_max(sl.max.y, full_extent<view_limits::coordinate_type>);
       return sl;
    }
 

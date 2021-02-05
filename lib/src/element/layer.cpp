@@ -14,7 +14,7 @@ namespace cycfi { namespace elements
    ////////////////////////////////////////////////////////////////////////////
    view_limits layer_element::limits(basic_context const& ctx) const
    {
-      view_limits limits{ { 0.0, 0.0 }, { full_extent, full_extent } };
+      view_limits limits;
       for (std::size_t ix = 0; ix != size();  ++ix)
       {
          auto el = at(ix).limits(ctx);

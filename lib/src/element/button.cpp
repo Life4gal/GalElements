@@ -12,7 +12,7 @@ namespace cycfi { namespace elements
    ////////////////////////////////////////////////////////////////////////////
    bool basic_button::click(context const& ctx, mouse_button btn)
    {
-      if (btn.state != mouse_button::left || !ctx.bounds.includes(btn.pos))
+      if (btn.state != mouse_button::what::left || !ctx.bounds.includes(btn.pos))
       {
          tracking(false);
          ctx.view.refresh(ctx);
@@ -130,7 +130,7 @@ namespace cycfi { namespace elements
 
    bool layered_button::click(context const& ctx, mouse_button btn)
    {
-      if (btn.state != mouse_button::left || !ctx.bounds.includes(btn.pos))
+      if (btn.state != mouse_button::what::left || !ctx.bounds.includes(btn.pos))
          return false;
 
       if (btn.down)

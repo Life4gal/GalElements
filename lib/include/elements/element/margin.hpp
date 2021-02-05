@@ -49,8 +49,8 @@ namespace cycfi { namespace elements
       r.min.y += _margin.top + _margin.bottom;
       r.max.y += _margin.top + _margin.bottom;
 
-      clamp_max(r.max.x, full_extent);
-      clamp_max(r.max.y, full_extent);
+      clamp_max(r.max.x, full_extent<view_limits::coordinate_type>);
+      clamp_max(r.max.y, full_extent<view_limits::coordinate_type>);
       return r;
    }
 

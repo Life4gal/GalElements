@@ -41,10 +41,7 @@ namespace cycfi { namespace elements
          std::max(_current_size.y, min_line_height)
          ;
 
-      return {
-         { 200, line_height },
-         { full_extent, full_extent }
-      };
+      return {200, line_height};
    }
 
    void static_text_box::layout(context const& ctx)
@@ -139,7 +136,7 @@ namespace cycfi { namespace elements
 
    bool basic_text_box::click(context const& ctx, mouse_button btn)
    {
-      if (btn.state != mouse_button::left)
+      if (btn.state != mouse_button::what::left)
          return false;
 
       _show_caret = true;
@@ -955,7 +952,7 @@ namespace cycfi { namespace elements
    {
       auto  size = _layout.metrics();
       auto  line_height = size.ascent + size.descent + size.leading;
-      return { { 32, line_height }, { full_extent, line_height } };
+      return { 32, line_height , full_extent<view_limits::coordinate_type>, line_height };
    }
 
    void basic_input_box::draw(context const& ctx)
@@ -1080,7 +1077,7 @@ namespace cycfi { namespace elements
 
    bool basic_input_box::click(context const& ctx, mouse_button btn)
    {
-      if (btn.state != mouse_button::left)
+      if (btn.state != mouse_button::what::left)
          return false;
 
       if (_first_focus && select_start() != select_end())

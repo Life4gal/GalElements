@@ -26,8 +26,7 @@ namespace cycfi::elements
 		cairo_surface_mark_dirty(_surface);
    }
 
-   template<typename T, typename>
-   pixmap::pixmap(char const* filename, T scale)
+   pixmap::pixmap(const char* filename, size_type scale)
 	   : _surface(nullptr)
    {
 	   auto  path = std::string(filename);

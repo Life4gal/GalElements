@@ -188,7 +188,7 @@ namespace cycfi { namespace elements
       ::limits(basic_context const& /* ctx */) const
    {
 	  auto pt = point{ float(size), float(size) };
-	  return view_limits{ pt, pt };
+	  return { pt, pt };
    }
 
    template <unsigned size>
@@ -239,8 +239,8 @@ namespace cycfi { namespace elements
 	  auto sz = float(size);
 	  auto min_length_ = float(min_length);
 	  auto p1 = vertical ? point{ sz, min_length_ } : point{ min_length_, sz };
-	  auto p2 = vertical ? point{ sz, full_extent } : point{ full_extent, sz };
-	  return view_limits{ p1, p2 };
+	  auto p2 = vertical ? point{ sz, full_extent<view_limits::coordinate_type> } : point{ full_extent<view_limits::coordinate_type>, sz };
+	  return { p1, p2 };
    }
 
    template <unsigned size, bool vertical>
@@ -282,13 +282,13 @@ namespace cycfi { namespace elements
       {
          sl.min.x += size;
          sl.max.x += size;
-         clamp_max(sl.max.x, full_extent);
+         clamp_max(sl.max.x, full_extent<view_limits::coordinate_type>);
       }
       else
       {
          sl.min.y += size;
          sl.max.y += size;
-         clamp_max(sl.max.y, full_extent);
+         clamp_max(sl.max.y, full_extent<view_limits::coordinate_type>);
       }
       return sl;
    }

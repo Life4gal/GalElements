@@ -114,10 +114,10 @@ namespace cycfi { namespace elements
             );
          };
 
-      if (app_is_activated())
-         set_limits();
-      else
-         on_activate.push_back(set_limits);
+	  if (app_is_activated())
+		  set_limits();
+	  else
+		  on_activate.emplace_back(set_limits);
    }
 
    point window::position() const
@@ -138,7 +138,7 @@ namespace cycfi { namespace elements
       if (app_is_activated())
          set_position();
       else
-         on_activate.push_back(set_position);
+         on_activate.emplace_back(set_position);
    }
 }}
 

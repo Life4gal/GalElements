@@ -97,7 +97,7 @@ namespace cycfi { namespace elements
    ////////////////////////////////////////////////////////////////////////////
    view_limits vtile_element::limits(basic_context const& ctx) const
    {
-      view_limits limits{ { 0.0, 0.0 }, { full_extent, 0.0 } };
+      view_limits limits{ view_limits::init_side::max_x_max_y, full_extent<view_limits::coordinate_type>, 0.0 };
       for (std::size_t i = 0; i != size();  ++i)
       {
          auto el = at(i).limits(ctx);
@@ -109,7 +109,7 @@ namespace cycfi { namespace elements
       }
 
       clamp_min(limits.max.x, limits.min.x);
-      clamp_max(limits.max.y, full_extent);
+      clamp_max(limits.max.y, full_extent<view_limits::coordinate_type>);
       return limits;
    }
 
@@ -176,7 +176,7 @@ namespace cycfi { namespace elements
    ////////////////////////////////////////////////////////////////////////////
    view_limits htile_element::limits(basic_context const& ctx) const
    {
-      view_limits limits{ { 0.0, 0.0 }, { 0.0, full_extent } };
+      view_limits limits{ view_limits::init_side::max_x_max_y, 0.0, full_extent<view_limits::coordinate_type> };
       for (std::size_t i = 0; i != size();  ++i)
       {
          auto el = at(i).limits(ctx);
@@ -188,7 +188,7 @@ namespace cycfi { namespace elements
       }
 
       clamp_min(limits.max.y, limits.min.y);
-      clamp_max(limits.max.x, full_extent);
+      clamp_max(limits.max.x, full_extent<view_limits::coordinate_type>);
       return limits;
    }
 

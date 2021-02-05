@@ -140,7 +140,7 @@ bool my_custom_control::click(context const& ctx, mouse_button btn)
    // Call the tracker<> click member function
    tracker<>::click(ctx, btn);
 
-   if (btn.state == mouse_button::left)
+   if (btn.state == mouse_button::what::left)
    {
       // lock the knob clicked over if any.
       for (std::size_t i = 0, e = _knobs.size(); i != e; ++i)
