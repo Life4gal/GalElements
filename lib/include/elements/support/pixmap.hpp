@@ -12,95 +12,124 @@
 #include <elements/support/point.hpp>
 #include <stdexcept>
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
-   class canvas;
+	class canvas;
 
-   ////////////////////////////////////////////////////////////////////////////
-   // Pixmaps
-   ////////////////////////////////////////////////////////////////////////////
-   struct failed_to_load_pixmap : std::runtime_error
-   {
-      using std::runtime_error::runtime_error;
-   };
+	// customize your errors
+	using failed_to_load_pixmap = std::runtime_error;
 
-   class pixmap
-   {
-   public:
+	// pixel map surface's width and height only support int type
+	using pixmap_extent = basic_extent<int>;
 
-      explicit          pixmap(point size, float scale = 1);
-      explicit          pixmap(char const* filename, float scale = 1);
-                        pixmap(pixmap const& rhs) = delete;
-                        pixmap(pixmap&& rhs);
-                        ~pixmap();
+	class pixmap
+	{
+	public:
+		using size_type = pixmap_extent::size_type;
 
-      pixmap&           operator=(pixmap const& rhs) = delete;
-      pixmap&           operator=(pixmap&& rhs);
+		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		explicit pixmap(size_type width, size_type height, T scale = 1);
 
-      extent            size() const;
-      float             scale() const;
-      void              scale(float val);
+		// basic_extent<size_type>
+		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		explicit pixmap(pixmap_extent size, T scale = 1) : pixmap(size.width, size.height, scale) {}
 
-   private:
+		// basic_extent<T> -> is_convertible<T, size_type>
+		template<typename Extent, typename T, typename = std::enable_if_t<std::is_convertible_v<Extent, size_type> && std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		explicit pixmap(basic_extent<Extent> size, T scale = 1) : pixmap(size.width, size.height, scale) {}
 
-      friend class canvas;
-      friend class pixmap_context;
+		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		explicit pixmap(const char* filename, T scale = 1);
 
-      cairo_surface_t*  _surface;
-   };
+		pixmap(pixmap const& rhs) = delete;
+		pixmap& operator=(pixmap const& rhs) = delete;
 
-   using pixmap_ptr = std::shared_ptr<pixmap>;
+		pixmap(pixmap&& rhs)  noexcept : _surface(std::exchange(rhs._surface, nullptr)) {}
 
-   ////////////////////////////////////////////////////////////////////////////
-   // pixmap_context allows drawing into a pixmap
-   ////////////////////////////////////////////////////////////////////////////
-   class pixmap_context
-   {
-   public:
+		pixmap& operator=(pixmap&& rhs) noexcept
+		{
+			if(this == &rhs)
+			{
+				return *this;
+			}
 
-      explicit          pixmap_context(pixmap& pm)
-                        {
-                           _context = cairo_create(pm._surface);
-                        }
+			_surface = std::exchange(rhs._surface, nullptr);
+		}
 
-                        ~pixmap_context()
-                        {
-                           if (_context)
-                              cairo_destroy(_context);
-                        }
+		~pixmap()
+		{
+			if(_surface)
+				cairo_surface_destroy(_surface);
+		}
 
-                        pixmap_context(pixmap_context&& rhs) noexcept
-                         : _context(rhs._context)
-                        {
-                           rhs._context = nullptr;
-                        }
+		// todo
+		template<typename Extent = float>
+		[[nodiscard]] basic_extent<Extent> size() const
+		{
+			double scx;
+			double scy;
+			cairo_surface_get_device_scale(_surface, &scx, &scy);
+			return {
+					static_cast<Extent>(cairo_image_surface_get_width(_surface) / scx),
+					static_cast<Extent>(cairo_image_surface_get_height(_surface) / scy)
+			};
+		}
 
-      cairo_t*          context() const { return _context; }
+		[[nodiscard]] size_type scale() const
+		{
+			double scx;
+			double scy;
+			cairo_surface_get_device_scale(_surface, &scx, &scy);
 
-   private:
-                        pixmap_context(pixmap_context const&) = delete;
+			return static_cast<size_type>(1/scx);
+		}
 
-      cairo_t*          _context;
-   };
+		void scale(size_type val)
+		{
+			cairo_surface_set_device_scale(_surface, static_cast<double>(1) / val, static_cast<double>(1) / val);
+		}
 
-   ////////////////////////////////////////////////////////////////////////////
-   // Inlines
-   ////////////////////////////////////////////////////////////////////////////
-   inline pixmap::pixmap(pixmap&& rhs)
-    : _surface(rhs._surface)
-   {
-      rhs._surface = nullptr;
-   }
+	private:
 
-   inline pixmap& pixmap::operator=(pixmap&& rhs)
-   {
-      if (this != &rhs)
-      {
-         _surface = rhs._surface;
-         rhs._surface = nullptr;
-      }
-      return *this;
-   }
-}}
+		friend class canvas;
+		friend class pixmap_context;
+
+		cairo_surface_t*  _surface = nullptr;
+	};
+
+	using pixmap_ptr = std::shared_ptr<pixmap>;
+
+	////////////////////////////////////////////////////////////////////////////
+	// pixmap_context allows drawing into a pixmap
+	////////////////////////////////////////////////////////////////////////////
+	class pixmap_context
+	{
+	public:
+
+		explicit pixmap_context(pixmap& pm)
+		{
+			_context = cairo_create(pm._surface);
+		}
+
+		~pixmap_context()
+		{
+			if (_context)
+				cairo_destroy(_context);
+		}
+
+		pixmap_context(pixmap_context&& rhs) noexcept
+			: _context(rhs._context)
+		{
+			rhs._context = nullptr;
+		}
+
+		[[nodiscard]] cairo_t* context() const { return _context; }
+
+		pixmap_context(pixmap_context const&) = delete;
+
+	private:
+		cairo_t*          _context;
+	};
+}
 
 #endif
