@@ -5,6 +5,7 @@
 =============================================================================*/
 #include <elements/element/gallery/tab.hpp>
 #include <elements/support/draw_utils.hpp>
+#include <elements/support/enum_operator.hpp>
 
 namespace cycfi { namespace elements
 {
@@ -41,7 +42,7 @@ namespace cycfi { namespace elements
          theme_.label_font,
          theme_.label_font_size
       );
-      canvas_.text_align(canvas_.center | canvas_.middle);
+      canvas_.text_align(canvas::text_alignment::center | canvas::text_alignment::middle);
       float cx = box.left + (box.width() / 2);
       float cy = box.top + (box.height() / 2);
       canvas_.fill_text(point{ cx, cy }, _text.c_str());

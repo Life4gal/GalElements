@@ -5,6 +5,7 @@
 =============================================================================*/
 #include <elements/element/slider.hpp>
 #include <elements/support/theme.hpp>
+#include <elements/support/enum_operator.hpp>
 #include <elements/view.hpp>
 #include <cmath>
 
@@ -260,7 +261,7 @@ namespace cycfi { namespace elements
       auto state = cnv.new_state();
       auto const& theme = get_theme();
 
-      cnv.text_align(cnv.middle | cnv.center);
+      cnv.text_align(canvas::text_alignment::middle | canvas::text_alignment::center);
       cnv.fill_style(theme.label_font_color);
 
       for (std::size_t i = 0; i != num_labels; ++i)

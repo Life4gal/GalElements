@@ -136,9 +136,9 @@ namespace cycfi::elements
 	}
 
 	/*
-	 * flag |= enum
-	 * only flag |= enum operator is valid
-	 * use enum |= flag is unreasonable
+	 * <del>flag |= enum</del>
+	 * <del>only flag |= enum operator is valid</del>
+	 * <del>use enum |= flag is unreasonable</del>
 	 */
 	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator|=(EnumType& lhs, const Enum& rhs)
@@ -146,6 +146,13 @@ namespace cycfi::elements
 		// forward to EnumType operator|(const EnumType& lhs, const Enum& rhs)
 		// forward is necessary ?
 		return (lhs = (std::forward<const EnumType&>(lhs) | std::forward<const Enum&>(rhs)));
+	}
+
+	// it maybe reasonable
+	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>>
+	constexpr Enum operator|=(Enum& lhs, const Enum& rhs)
+	{
+		return (lhs = lhs | rhs);
 	}
 
 	/*
@@ -226,14 +233,21 @@ namespace cycfi::elements
 	}
 
 	/*
-	 * flag &= enum
-	 * only flag &= enum operator is valid
-	 * use enum &= flag is unreasonable
+	 * <del>flag &= enum</del>
+	 * <del>only flag &= enum operator is valid</del>
+	 * <del>use enum &= flag is unreasonable</del>
 	 */
 	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum>>, typename = std::enable_if_t<std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
 	constexpr EnumType operator&=(EnumType& lhs, const Enum& rhs)
 	{
 		return (lhs = static_cast<EnumType>(lhs & static_cast<EnumType>(rhs)));
+	}
+
+	// it maybe reasonable
+	template <typename Enum, typename EnumType = std::underlying_type_t<Enum>, typename = std::enable_if_t<std::is_enum_v<Enum>>>
+	constexpr Enum operator&=(Enum& lhs, const Enum& rhs)
+	{
+		return (lhs = lhs & rhs);
 	}
 
 	template <typename EnumType, typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && std::is_convertible_v<EnumType, std::underlying_type_t<Enum>>>>
@@ -390,6 +404,19 @@ namespace cycfi::elements
 	constexpr auto operator/(const Enum1& lhs, const Enum2& rhs)
 	{
 		return static_cast<EnumType>(lhs) / rhs;
+	}
+
+	template<typename Enum, typename... EnumPack, typename = std::enable_if_t<std::is_enum_v<Enum>>>
+	constexpr bool enum_contains(const Enum& enum1, const Enum& enum2, const EnumPack&... pack)
+	{
+		if constexpr (sizeof...(pack) == 0)
+		{
+			return (enum1 & enum2) == enum2;
+		}
+		else
+		{
+			return enum_contains(enum1, enum2) && enum_contains(enum1, pack...);
+		}
 	}
 }
 

@@ -5,6 +5,7 @@
 =============================================================================*/
 #include <elements/support/draw_utils.hpp>
 #include <elements/support/theme.hpp>
+#include <elements/support/enum_operator.hpp>
 
 namespace cycfi { namespace elements
 {
@@ -288,7 +289,7 @@ namespace cycfi { namespace elements
 
       auto state = cnv.new_state();
       auto center = cp.center;
-      cnv.translate({ center.x, center.y });
+      cnv.translate(center.x, center.y);
       cnv.rotate(offset + (val * range));
 
       float r = cp.radius * 0.85;
@@ -309,7 +310,7 @@ namespace cycfi { namespace elements
       float div = range / num_divs;
       auto const& theme = get_theme();
 
-      cnv.translate({ center.x, center.y });
+      cnv.translate(center.x, center.y);
       cnv.stroke_style(theme.ticks_color);
       for (int i = 0; i != num_divs+1; ++i)
       {
@@ -356,8 +357,8 @@ namespace cycfi { namespace elements
       float div = range / (num_labels-1);
       auto const& theme = get_theme();
 
-      cnv.translate({ center.x, center.y });
-      cnv.text_align(cnv.middle | cnv.center);
+      cnv.translate(center.x, center.y);
+      cnv.text_align(canvas::text_alignment::middle | canvas::text_alignment::center);
       cnv.fill_style(theme.label_font_color);
 
       cnv.font(

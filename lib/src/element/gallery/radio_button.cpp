@@ -4,6 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #include <elements/element/gallery/radio_button.hpp>
+#include <elements/support/enum_operator.hpp>
 
 namespace cycfi { namespace elements
 {
@@ -56,7 +57,7 @@ namespace cycfi { namespace elements
          theme_.label_font,
          theme_.label_font_size
       );
-      canvas_.text_align(canvas_.left | canvas_.middle);
+      canvas_.text_align(canvas::text_alignment::left | canvas::text_alignment::middle);
       float cx = box.right + 10;
       float cy = ctx.bounds.top + (ctx.bounds.height() / 2);
       canvas_.fill_text(point{ cx, cy }, _text.c_str());

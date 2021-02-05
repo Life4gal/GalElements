@@ -4,6 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #include <elements/element/label.hpp>
+#include <elements/support/enum_operator.hpp>
 
 namespace cycfi { namespace elements
 {
@@ -24,36 +25,40 @@ namespace cycfi { namespace elements
       auto  align = get_text_align();
 
       // default should reflect the theme's vertical label_text_align
-      if ((align & 0x1C) == 0)
-         align |= get_theme().label_text_align & 0x1C;
+      if ((align & canvas::text_alignment::vertical_mask) == 0)
+         align |= get_theme().label_text_align & canvas::text_alignment::vertical_mask;
 
       canvas_.fill_style(get_font_color());
       canvas_.font(get_font(), get_font_size());
 
       float cx = ctx.bounds.left + (ctx.bounds.width() / 2);
-      switch (align & 0x3)
+      switch (canvas::text_alignment::horizontal_mask & align)
       {
-         case canvas::left:
+         case canvas::text_alignment::left:
             cx = ctx.bounds.left;
             break;
-         case canvas::center:
+         case canvas::text_alignment::center:
             break;
-         case canvas::right:
+         case canvas::text_alignment::right:
             cx = ctx.bounds.right;
             break;
+		 default:
+			 break;
       }
 
       float cy = ctx.bounds.top + (ctx.bounds.height() / 2);
-      switch (align & 0x1C)
+      switch (canvas::text_alignment::vertical_mask & align)
       {
-         case canvas::top:
+         case canvas::text_alignment::top:
             cy = ctx.bounds.top;
             break;
-         case canvas::middle:
+         case canvas::text_alignment::middle:
             break;
-         case canvas::bottom:
+         case canvas::text_alignment::bottom:
             cy = ctx.bounds.bottom;
             break;
+		 default:
+			 break;
       }
 
       canvas_.text_align(align);

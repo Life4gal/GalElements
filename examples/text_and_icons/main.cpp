@@ -87,7 +87,7 @@ auto make_basic_text()
 
    auto my_label = [=](auto text)
    {
-      return right_margin(10, label(text).text_align(canvas::right));
+      return right_margin(10, label(text).text_align(canvas::text_alignment::right));
    };
 
    auto my_input = [=](auto caption, auto input)
@@ -135,11 +135,11 @@ auto make_basic_text()
             el(
                vtile(
                   label("A cross-platform,")
-                     .text_align(canvas::center),
+                     .text_align(canvas::text_alignment::center),
                   label("fine-grained,")
-                     .text_align(canvas::left),
+                     .text_align(canvas::text_alignment::left),
                   label("highly modular C++ GUI library.")
-                     .text_align(canvas::right),
+                     .text_align(canvas::text_alignment::right),
                   label("Based on a GUI framework written in the mid 90s named Pica."),
                   label("Now, Joel rewrote my code using modern C++17.")
                )

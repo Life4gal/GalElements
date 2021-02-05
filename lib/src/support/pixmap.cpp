@@ -22,11 +22,11 @@ namespace cycfi::elements
 			throw failed_to_load_pixmap{ "Failed to create pixmap." };
 
 		// Set scale and flag the surface as dirty
-		cairo_surface_set_device_scale(_surface, 1/scale, 1/scale);
+		cairo_surface_set_device_scale(_surface, static_cast<double>(1)/scale, static_cast<double>(1)/scale);
 		cairo_surface_mark_dirty(_surface);
    }
 
-   pixmap::pixmap(const char* filename, size_type scale)
+   pixmap::pixmap(const char* filename, float scale)
 	   : _surface(nullptr)
    {
 	   auto  path = std::string(filename);
@@ -84,7 +84,7 @@ namespace cycfi::elements
 		   throw failed_to_load_pixmap{ "Failed to load pixmap." };
 
 	   // Set scale and flag the surface as dirty
-	   cairo_surface_set_device_scale(_surface, 1/scale, 1/scale);
+	   cairo_surface_set_device_scale(_surface, static_cast<double>(1)/scale, static_cast<double>(1)/scale);
 	   cairo_surface_mark_dirty(_surface);
    }
 }

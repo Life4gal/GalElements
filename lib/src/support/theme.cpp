@@ -4,6 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #include <elements/support/theme.hpp>
+#include <elements/support/enum_operator.hpp>
 #include <elements/element/dial.hpp>
 #include <elements/view.hpp>
 
@@ -41,12 +42,12 @@ namespace cycfi { namespace elements
     , heading_font_color         { basic_font_color }
     , heading_font               { font_descriptor{ "Roboto" }.get_weight_medium() }
     , heading_font_size          { 14.0 }
-    , heading_text_align         { canvas::middle | canvas::center }
+    , heading_text_align         { canvas::text_alignment::middle | canvas::text_alignment::center }
 
     , label_font_color           { basic_font_color }
     , label_font                 { font_descriptor{ "Open Sans" } }
     , label_font_size            { 14.0 }
-    , label_text_align           { canvas::middle | canvas::center }
+    , label_text_align           { canvas::text_alignment::middle | canvas::text_alignment::center }
 
     , icon_color                 { basic_font_color }
     , icon_font                  { font_descriptor{ "elements_basic" } }

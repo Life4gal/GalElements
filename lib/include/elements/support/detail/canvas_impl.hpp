@@ -59,7 +59,7 @@ namespace cycfi { namespace elements
       stroke();
    }
 
-   inline void canvas::text_align(int align)
+   inline void canvas::text_align(canvas::text_alignment align)
    {
       _state.align = align;
    }
@@ -104,19 +104,19 @@ namespace cycfi { namespace elements
 
    inline void canvas::apply_fill_style()
    {
-      if (_state.pattern_set != _state.fill_set && _state.fill_style)
+      if (_state.pattern_set != canvas_state::pattern_state::fill_set && _state.fill_style)
       {
          _state.fill_style();
-         _state.pattern_set = _state.fill_set;
+         _state.pattern_set = canvas_state::pattern_state::fill_set;
       }
    }
 
    inline void canvas::apply_stroke_style()
    {
-      if (_state.pattern_set != _state.stroke_set && _state.stroke_style)
+      if (_state.pattern_set != canvas_state::pattern_state::stroke_set && _state.stroke_style)
       {
          _state.stroke_style();
-         _state.pattern_set = _state.stroke_set;
+         _state.pattern_set = canvas_state::pattern_state::stroke_set;
       }
    }
 

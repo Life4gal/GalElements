@@ -5,6 +5,7 @@
 =============================================================================*/
 #include <elements/support/text_utils.hpp>
 #include <elements/support/theme.hpp>
+#include <elements/support/enum_operator.hpp>
 
 namespace cycfi { namespace elements
 {
@@ -16,7 +17,7 @@ namespace cycfi { namespace elements
       float cy = bounds.top + (bounds.height() / 2);
       cnv.font(thm.icon_font, size);
       cnv.fill_style(c);
-      cnv.text_align(cnv.middle | cnv.center);
+      cnv.text_align(canvas::text_alignment::middle | canvas::text_alignment::center);
       cnv.fill_text(point{ cx, cy }, codepoint_to_utf8(code).c_str());
    }
 

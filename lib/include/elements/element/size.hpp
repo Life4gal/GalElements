@@ -661,7 +661,7 @@ namespace cycfi { namespace elements
    {
       auto& canvas_ = ctx.canvas;
       canvas_.save();
-      canvas_.scale({ _scale, _scale });
+      canvas_.scale( _scale, _scale );
       ctx.bounds = device_to_user(ctx.bounds, ctx.canvas);
    }
 
