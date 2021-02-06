@@ -141,6 +141,7 @@ namespace cycfi::elements
 
 	void canvas::arc_to(point /* p1 */, point /* p2 */, float /* radius */)
 	{
+		(void)this;
 		assert(false); // unimplemented
 	}
 
@@ -226,7 +227,7 @@ namespace cycfi::elements
 	void canvas::fill_rule(fill_rule_enum rule)
 	{
 		cairo_set_fill_rule(
-				&_context, rule == fill_winding ? CAIRO_FILL_RULE_WINDING : CAIRO_FILL_RULE_EVEN_ODD);
+				&_context, rule == fill_rule_enum::fill_winding ? CAIRO_FILL_RULE_WINDING : CAIRO_FILL_RULE_EVEN_ODD);
 	}
 
 	void canvas::font(elements::font const& font_)
@@ -331,7 +332,7 @@ namespace cycfi::elements
 		translate(dest.left_top());
 		auto scale_ = point{ w/src.width(), h/src.height() };
 		scale(scale_);
-		cairo_set_source_surface(&_context, pm._surface, -src.left, -src.top);
+		cairo_set_source_surface(&_context, pm.surface, -src.left, -src.top);
 		rect({ 0, 0, w/scale_.x, h/scale_.y });
 		cairo_fill(&_context);
 	}

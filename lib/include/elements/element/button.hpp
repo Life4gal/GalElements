@@ -228,12 +228,12 @@ namespace cycfi { namespace elements
       if (btn.down)
       {
          this->tracking(true);
-         this->on_tracking(ctx, this->begin_tracking);
+         this->on_tracking(ctx, proxy_base::tracking::begin_tracking);
       }
       else
       {
          this->tracking(false);
-         this->on_tracking(ctx, this->end_tracking);
+         this->on_tracking(ctx, proxy_base::tracking::end_tracking);
          if (this->on_click)
             this->on_click(true);
       }

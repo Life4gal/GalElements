@@ -22,12 +22,12 @@ namespace cycfi { namespace elements
       if (btn.down)
       {
          tracking(true);
-         on_tracking(ctx, begin_tracking);
+         on_tracking(ctx, element::tracking::begin_tracking);
       }
       else
       {
          tracking(false);
-         on_tracking(ctx, end_tracking);
+         on_tracking(ctx, element::tracking::end_tracking);
          if (on_click)
             on_click(true);
          ctx.view.refresh(ctx);
@@ -135,11 +135,11 @@ namespace cycfi { namespace elements
 
       if (btn.down)
       {
-         on_tracking(ctx, begin_tracking);
+         on_tracking(ctx, element::tracking::begin_tracking);
       }
       else
       {
-         on_tracking(ctx, end_tracking);
+         on_tracking(ctx, element::tracking::end_tracking);
          if (on_click)
             on_click(true);
       }

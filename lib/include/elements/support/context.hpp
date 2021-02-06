@@ -11,38 +11,35 @@
 #include <elements/support/rect.hpp>
 #include <functional>
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
- 	////////////////////////////////////////////////////////////////////////////////////////////////
-   // Forward declarations
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Forward declarations
+	class view;
+	class element;
+	class canvas;
 
-   class view;
-   class element;
-   class canvas;
-
-   point    cursor_pos(view const& v);
-   rect     view_bounds(view const& v);
-   point    device_to_user(point p, canvas& cnv);
-   rect     device_to_user(rect const& r, canvas& cnv);
+	point cursor_pos(const view & v);
+	rect view_bounds(const view & v);
+	point device_to_user(point p, canvas& cnv);
+	rect device_to_user(const rect & r, canvas& cnv);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Contexts
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-   struct basic_context
-   {
-      basic_context(elements::view& view_, elements::canvas& cnv)
-       : view(view_)
-       , canvas(cnv)
-      {}
+	struct basic_context
+	{
+		basic_context(elements::view& view_, elements::canvas& cnv)
+			: view(view_), canvas(cnv) {}
 
-      basic_context(basic_context const&) = default;
-      basic_context& operator=(basic_context const&) = delete;
+		basic_context(const basic_context &) = default;
+		basic_context& operator=(const basic_context &) = delete;
 
-      rect view_bounds() const
-      {
-         return device_to_user(elements::view_bounds(view), canvas);
-      }
+		[[nodiscard]] rect view_bounds() const
+		{
+			return device_to_user(elements::view_bounds(view), canvas);
+		}
 
       point cursor_pos() const
       {

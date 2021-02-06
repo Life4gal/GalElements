@@ -10,7 +10,7 @@
 # define M_PI 3.14159265358979323846
 #endif
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
    ////////////////////////////////////////////////////////////////////////////
    // Inlines
@@ -83,7 +83,7 @@ namespace cycfi { namespace elements
    inline canvas::state::state(state&& rhs) noexcept
     : cnv(rhs.cnv)
    {
-      rhs.cnv = 0;
+      rhs.cnv = nullptr;
    }
 
    inline canvas::state::~state()
@@ -135,6 +135,6 @@ namespace cycfi { namespace elements
    {
       return cnv.device_to_user(p);
    }
-}}
+}
 
 #endif

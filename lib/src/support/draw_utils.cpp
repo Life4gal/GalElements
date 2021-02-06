@@ -47,7 +47,7 @@ namespace cycfi { namespace elements
          cnv.begin_path();
          cnv.rect(bounds.inset(-100, -100));
          cnv.round_rect(bounds.inset(0.5, 0.5), corner_radius);
-         cnv.fill_rule(canvas::fill_odd_even);
+         cnv.fill_rule(canvas::fill_rule_enum::fill_odd_even);
          cnv.clip();
 
          rect shr = bounds;
@@ -161,7 +161,7 @@ namespace cycfi { namespace elements
          cnv.begin_path();
          cnv.circle(cp);
          cnv.circle(cp.inset(inset));
-         cnv.fill_rule(canvas::fill_odd_even);
+         cnv.fill_rule(canvas::fill_rule_enum::fill_odd_even);
          cnv.clip();
 
          auto bounds = cp.get_circumscribed_rect();
@@ -238,7 +238,7 @@ namespace cycfi { namespace elements
 
          gradient.add_color_stop({ 0.0, colors::white.opacity(0.3) });
          gradient.add_color_stop({ 0.5, colors::black.opacity(0.5) });
-         cnv.fill_rule(canvas::fill_odd_even);
+         cnv.fill_rule(canvas::fill_rule_enum::fill_odd_even);
          cnv.fill_style(gradient);
 
          circle cpf = cp;

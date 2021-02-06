@@ -182,7 +182,7 @@ namespace cycfi::elements
 		void fill_style(linear_gradient const& gr);
 		void fill_style(radial_gradient const& gr);
 
-		enum fill_rule_enum
+		enum class fill_rule_enum
 		{
 			fill_winding,
 			fill_odd_even
@@ -223,9 +223,9 @@ namespace cycfi::elements
 
 		struct text_metrics
 		{
-            float ascent;
-            float descent;
-            float leading;
+            float ascent{};
+            float descent{};
+            float leading{};
             point size;
 		};
 
@@ -245,7 +245,7 @@ namespace cycfi::elements
 		class state
 		{
 		public:
-			state(canvas& cnv_);
+			explicit state(canvas& cnv_);
 			state(state&& rhs) noexcept;
 			state&  operator=(state&& rhs) noexcept;
 			~state();
