@@ -16,18 +16,18 @@ namespace cycfi::elements
 {
 	template<typename T, typename>
 	pixmap::pixmap(size_type width, size_type height, T scale)
-		: _surface(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height))
+		: surface(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height))
 	{
-		if (!_surface)
+		if (!surface)
 			throw failed_to_load_pixmap{ "Failed to create pixmap." };
 
 		// Set scale and flag the surface as dirty
-		cairo_surface_set_device_scale(_surface, static_cast<double>(1)/scale, static_cast<double>(1)/scale);
-		cairo_surface_mark_dirty(_surface);
+		cairo_surface_set_device_scale(surface, static_cast<double>(1)/scale, static_cast<double>(1)/scale);
+		cairo_surface_mark_dirty(surface);
    }
 
    pixmap::pixmap(const char* filename, float scale)
-	   : _surface(nullptr)
+	   : surface(nullptr)
    {
 	   auto  path = std::string(filename);
 	   auto  pos = path.find_last_of('.');
@@ -42,7 +42,7 @@ namespace cycfi::elements
 	   if (ext == ".png" || ext == ".PNG")
 	   {
 		   // For PNGs, use Cairo's native PNG loader
-		   _surface = cairo_image_surface_create_from_png(full_path.string().c_str());
+		   surface = cairo_image_surface_create_from_png(full_path.string().c_str());
 	   }
 	   else
 	   {
@@ -52,11 +52,11 @@ namespace cycfi::elements
 
 		   if (src_data)
 		   {
-			   _surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+			   surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
 
-			   uint8_t* dest_data = cairo_image_surface_get_data(_surface);
+			   uint8_t* dest_data = cairo_image_surface_get_data(surface);
 			   size_t   src_stride = w * 4;
-			   size_t   dest_stride = cairo_image_surface_get_stride(_surface);
+			   size_t   dest_stride = cairo_image_surface_get_stride(surface);
 
 			   for (int y = 0; y != h; ++y)
 			   {
@@ -80,11 +80,11 @@ namespace cycfi::elements
 		   }
 	   }
 
-	   if (!_surface)
+	   if (!surface)
 		   throw failed_to_load_pixmap{ "Failed to load pixmap." };
 
 	   // Set scale and flag the surface as dirty
-	   cairo_surface_set_device_scale(_surface, static_cast<double>(1)/scale, static_cast<double>(1)/scale);
-	   cairo_surface_mark_dirty(_surface);
+	   cairo_surface_set_device_scale(surface, static_cast<double>(1)/scale, static_cast<double>(1)/scale);
+	   cairo_surface_mark_dirty(surface);
    }
 }

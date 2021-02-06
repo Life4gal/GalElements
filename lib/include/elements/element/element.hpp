@@ -14,81 +14,83 @@
 #include <memory>
 #include <type_traits>
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
-   struct basic_context;
-   class context;
+	struct basic_context;
+	class context;
 
-   ////////////////////////////////////////////////////////////////////////////
-   // Elements
-   //
-   // This is the class that deals with the graphic representation of fine-
-   // grained elements inside a window which may be static graphics or active
-   // controls.
-   ////////////////////////////////////////////////////////////////////////////
-   class element : public std::enable_shared_from_this<element>
-   {
-   public:
-                              element() {}
-                              virtual ~element() = default;
+	////////////////////////////////////////////////////////////////////////////
+	// Elements
+	//
+	// This is the class that deals with the graphic representation of fine-
+	// grained elements inside a window which may be static graphics or active
+	// controls.
+	////////////////////////////////////////////////////////////////////////////
+	class element : public std::enable_shared_from_this<element>
+	{
+	public:
+		virtual ~element() = default;
 
-   // Display
+		// Display
+		virtual view_limits limits(const basic_context & ctx) const;
+		virtual view_stretch stretch() const;
+		virtual unsigned span() const;
+		virtual element* hit_test(const context & ctx, point p);
+		virtual void draw(const context & ctx);
+		virtual void layout(const context & ctx);
+		virtual void refresh(const context & ctx, element& element, int outward /* = 0 */);
+		void refresh(const context & ctx, int outward = 0) { refresh(ctx, *this, outward); }
 
-      virtual view_limits     limits(basic_context const& ctx) const;
-      virtual view_stretch    stretch() const;
-      virtual unsigned        span() const;
-      virtual element*        hit_test(context const& ctx, point p);
-      virtual void            draw(context const& ctx);
-      virtual void            layout(context const& ctx);
-      virtual void            refresh(context const& ctx, element& element, int outward = 0);
-      void                    refresh(context const& ctx, int outward = 0) { refresh(ctx, *this, outward); }
+		// Control
+		virtual bool wants_control() const;
+		virtual bool click(const context & ctx, mouse_button btn);
+		virtual void drag(const context & ctx, mouse_button btn);
+		virtual bool key(const context & ctx, key_info k);
+		virtual bool text(const context & ctx, text_info info);
+		virtual bool cursor(const context & ctx, point p, cursor_tracking status);
+		virtual bool scroll(const context & ctx, point dir, point p);
 
-   // Control
+		virtual bool wants_focus() const;
+		virtual void begin_focus();
+		virtual void end_focus();
+		virtual const element * focus() const;
+		virtual element* focus();
 
-      virtual bool            wants_control() const;
-      virtual bool            click(context const& ctx, mouse_button btn);
-      virtual void            drag(context const& ctx, mouse_button btn);
-      virtual bool            key(context const& ctx, key_info k);
-      virtual bool            text(context const& ctx, text_info info);
-      virtual bool            cursor(context const& ctx, point p, cursor_tracking status);
-      virtual bool            scroll(context const& ctx, point dir, point p);
+		enum class tracking
+		{
+			none,
+			begin_tracking,
+			while_tracking,
+			end_tracking
+		};
 
-      virtual bool            wants_focus() const;
-      virtual void            begin_focus();
-      virtual void            end_focus();
-      virtual element const*  focus() const;
-      virtual element*        focus();
+	protected:
+		void on_tracking(context const& ctx, tracking state);
+	};
 
-      enum tracking { none, begin_tracking, while_tracking, end_tracking };
+	////////////////////////////////////////////////////////////////////////////
+	using element_ptr = std::shared_ptr<element>;
+	using element_const_ptr = std::shared_ptr<const element>;
+	using weak_element_ptr = std::weak_ptr<element>;
+	using weak_element_const_ptr = std::weak_ptr<const element>;
 
-   protected:
+	template <typename Element>
+	inline auto share(Element&& e)
+	{
+		using element_type = typename std::decay<Element>::type;
+		return std::make_shared<element_type>(std::forward<Element>(e));
+	}
 
-      void                    on_tracking(context const& ctx, tracking state);
-   };
+	template <typename Element>
+	inline auto get(const std::shared_ptr<Element> & ptr)
+	{
+		return std::weak_ptr<Element>(ptr);
+	}
 
-   ////////////////////////////////////////////////////////////////////////////
-   using element_ptr = std::shared_ptr<element>;
-   using element_const_ptr = std::shared_ptr<element const>;
-   using weak_element_ptr = std::weak_ptr<element>;
-   using weak_element_const_ptr = std::weak_ptr<element const>;
-
-   template <typename Element>
-   inline auto share(Element&& e)
-   {
-      using element_type = typename std::decay<Element>::type;
-      return std::make_shared<element_type>(std::forward<Element>(e));
-   }
-
-   template <typename Element>
-   inline auto get(std::shared_ptr<Element> const& ptr)
-   {
-      return std::weak_ptr<Element>(ptr);
-   }
-
-   inline element empty()
-   {
-      return {};
-   }
-}}
+	inline element empty()
+	{
+		return {};
+	}
+}
 
 #endif

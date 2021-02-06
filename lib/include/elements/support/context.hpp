@@ -41,77 +41,77 @@ namespace cycfi::elements
 			return device_to_user(elements::view_bounds(view), canvas);
 		}
 
-      point cursor_pos() const
-      {
-         return device_to_user(elements::cursor_pos(view), canvas);
-      }
+		[[nodiscard]] point cursor_pos() const
+		{
+			return device_to_user(elements::cursor_pos(view), canvas);
+		}
 
-      elements::view&        view;
-      elements::canvas&      canvas;
-   };
+		elements::view& view;
+		elements::canvas& canvas;
+	};
 
-   ////////////////////////////////////////////////////////////////////////////////////////////////
-   class context : public basic_context
-   {
-   public:
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	class context : public basic_context
+	{
+	public:
 
-      context(context const& rhs, elements::rect bounds_)
-       : basic_context(rhs.view, rhs.canvas), element(rhs.element)
-       , parent(rhs.parent), bounds(bounds_)
-      {}
+		context(const context & rhs, elements::rect bounds_)
+			:
+			  basic_context(rhs.view, rhs.canvas),
+			  element(rhs.element), parent(rhs.parent), bounds(bounds_) {}
 
-      context(context const& parent_, element* element_, elements::rect bounds_)
-       : basic_context(parent_.view, parent_.canvas), element(element_)
-       , parent(&parent_), bounds(bounds_)
-      {}
+		context(const context & parent_, element* element_, elements::rect bounds_)
+			:
+			  basic_context(parent_.view, parent_.canvas),
+			  element(element_), parent(&parent_), bounds(bounds_) {}
 
-      context(class view& view_, class canvas& canvas_, element* element_, elements::rect bounds_)
-       : basic_context(view_, canvas_), element(element_)
-       , parent(nullptr), bounds(bounds_)
-      {}
+		context(elements::view& view_, elements::canvas& canvas_, element* element_, elements::rect bounds_)
+			:
+			  basic_context(view_, canvas_),
+			  element(element_), parent(nullptr), bounds(bounds_) {}
 
-      context(context const&) = default;
-      context& operator=(context const&) = delete;
+		context(const context &) = default;
+		context& operator=(const context &) = delete;
 
-      context sub_context() const
-      {
-         auto ctx = context{ *this };
-         ctx.parent = this;
-         return ctx;
-      }
+		[[nodiscard]] context sub_context() const
+		{
+			auto ctx = context{ *this };
+			ctx.parent = this;
+			return ctx;
+		}
 
-      template <typename T, typename F>
-      void listen(F&& f)
-      {
-         _listener =
-            [f](auto const& ctx, auto* e, auto what)
-            {
-               if (auto te = dynamic_cast<T*>(e))
-                  f(ctx, *te, what);
-            };
-      }
+		template <typename T, typename F>
+		void listen(F&& f)
+		{
+			_listener =
+					[f](const auto & ctx, auto* e, auto what)
+			{
+				if (auto te = dynamic_cast<T*>(e))
+					f(ctx, *te, what);
+			};
+		}
 
-      void notify(context const& ctx, string_view what, elements::element* e) const
-      {
-         if (_listener)
-            _listener(ctx, e, what);
-         if (parent)
-            parent->notify(ctx, what, e);
-      }
+		void notify(const context & ctx, string_view what, elements::element* e) const
+		{
+			if (_listener)
+				_listener(ctx, e, what);
+			if (parent)
+				parent->notify(ctx, what, e);
+		}
 
-      elements::element*            element;
-      context const*                parent;
-      elements::rect                bounds;
+		elements::element* element;
+		const context * parent;
+		elements::rect bounds;
 
-   private:
+	private:
 
-      using listener_function =
-         std::function<
-            void(context const& ctx, elements::element*, string_view what)
-         >;
+		using listener_function =
+				std::function<
+				        void(const context & ctx, elements::element*, string_view what)
+						>;
 
-      listener_function             _listener;
-   };
-}}
+		listener_function _listener;
+	};
+}
 
 #endif

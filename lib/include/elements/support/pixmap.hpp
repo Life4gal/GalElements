@@ -20,6 +20,7 @@ namespace cycfi::elements
 	using failed_to_load_pixmap = std::runtime_error;
 
 	// pixel map surface's width and height only support int type
+	// todo: although surface size type is int, type of scale must be floating_point(scale: 0.25 --> scale: 0 -> 1 / 0 --> error)
 	using pixmap_extent = basic_extent<int>;
 
 	class pixmap
@@ -27,23 +28,23 @@ namespace cycfi::elements
 	public:
 		using size_type = pixmap_extent::size_type;
 
-		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 		explicit pixmap(size_type width, size_type height, T scale = 1);
 
 		// basic_extent<size_type>
-		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, size_type>>>
 		explicit pixmap(pixmap_extent size, T scale = 1) : pixmap(size.width, size.height, scale) {}
 
 		// basic_extent<T> -> is_convertible<T, size_type>
-		template<typename Extent, typename T, typename = std::enable_if_t<std::is_convertible_v<Extent, size_type> && std::is_arithmetic_v<T> && std::is_convertible_v<T, size_type>>>
+		template<typename Extent, typename T, typename = std::enable_if_t<std::is_convertible_v<Extent, size_type> && std::is_floating_point_v<T>>>
 		explicit pixmap(basic_extent<Extent> size, T scale = 1) : pixmap(size.width, size.height, scale) {}
 
-		explicit pixmap(const char* filename, size_type scale = 1);
+		explicit pixmap(const char* filename, float scale = 1.0f);
 
 		pixmap(pixmap const& rhs) = delete;
 		pixmap& operator=(pixmap const& rhs) = delete;
 
-		pixmap(pixmap&& rhs) noexcept : _surface(std::exchange(rhs._surface, nullptr)) {}
+		pixmap(pixmap&& rhs) noexcept : surface(std::exchange(rhs.surface, nullptr)) {}
 
 		pixmap& operator=(pixmap&& rhs) noexcept
 		{
@@ -52,13 +53,13 @@ namespace cycfi::elements
 				return *this;
 			}
 
-			_surface = std::exchange(rhs._surface, nullptr);
+			surface = std::exchange(rhs.surface, nullptr);
 		}
 
 		~pixmap()
 		{
-			if(_surface)
-				cairo_surface_destroy(_surface);
+			if(surface)
+				cairo_surface_destroy(surface);
 		}
 
 		// todo
@@ -67,10 +68,10 @@ namespace cycfi::elements
 		{
 			double scx;
 			double scy;
-			cairo_surface_get_device_scale(_surface, &scx, &scy);
+			cairo_surface_get_device_scale(surface, &scx, &scy);
 			return {
-					static_cast<Extent>(cairo_image_surface_get_width(_surface) / scx),
-					static_cast<Extent>(cairo_image_surface_get_height(_surface) / scy)
+					static_cast<Extent>(cairo_image_surface_get_width(surface) / scx),
+					static_cast<Extent>(cairo_image_surface_get_height(surface) / scy)
 			};
 		}
 
@@ -78,14 +79,14 @@ namespace cycfi::elements
 		{
 			double scx;
 			double scy;
-			cairo_surface_get_device_scale(_surface, &scx, &scy);
+			cairo_surface_get_device_scale(surface, &scx, &scy);
 
 			return static_cast<size_type>(1/scx);
 		}
 
 		void scale(size_type val)
 		{
-			cairo_surface_set_device_scale(_surface, static_cast<double>(1) / val, static_cast<double>(1) / val);
+			cairo_surface_set_device_scale(surface, static_cast<double>(1) / val, static_cast<double>(1) / val);
 		}
 
 	private:
@@ -93,7 +94,7 @@ namespace cycfi::elements
 		friend class canvas;
 		friend class pixmap_context;
 
-		cairo_surface_t*  _surface = nullptr;
+		cairo_surface_t* surface = nullptr;
 	};
 
 	using pixmap_ptr = std::shared_ptr<pixmap>;
@@ -107,7 +108,7 @@ namespace cycfi::elements
 
 		explicit pixmap_context(pixmap& pm)
 		{
-			_context = cairo_create(pm._surface);
+			_context = cairo_create(pm.surface);
 		}
 
 		~pixmap_context()
@@ -127,7 +128,7 @@ namespace cycfi::elements
 		pixmap_context(pixmap_context const&) = delete;
 
 	private:
-		cairo_t*          _context;
+		cairo_t* _context;
 	};
 }
 
