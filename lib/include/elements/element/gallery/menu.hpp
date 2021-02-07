@@ -14,178 +14,192 @@
 #include <infra/string_view.hpp>
 #include <string>
 
-namespace cycfi { namespace elements
+namespace cycfi::elements
 {
-   ////////////////////////////////////////////////////////////////////////////
-   // Popup Button
-   ////////////////////////////////////////////////////////////////////////////
-   basic_menu button_menu(
-      std::string text
-    , menu_position pos = menu_position::bottom_right
-    , color body_color = get_theme().default_button_color
-   );
+	// this function will be call when menu been clicked
+	// change callback in menu.cpp -->
+	// std::pair<basic_menu, std::shared_ptr<basic_label>>
+	// build_selection_menu_label(
+	//			const menu_select_callback& on_select,
+	//			menu_selector const& items
+	//			)
+	template<typename... Args>
+	using menu_select_callback_template = std::function<void(string_view item, Args...args)>;
 
-   basic_menu button_menu(
-      menu_position pos = menu_position::bottom_right
-    , color body_color = get_theme().default_button_color
-   );
+	// use of alias template requires template arguments
+	// argument deduction not allowed in function prototype
+	// so you can not simply use menu_select_callback_template
+	// otherwise you need use template arg where it been used
+	using menu_select_callback = std::function<void(string_view item, size_t where)>;
 
-   basic_menu icon_menu(
-      uint32_t code
-    , float size
-    , menu_position pos = menu_position::bottom_right
-   );
+	////////////////////////////////////////////////////////////////////////////
+	// Popup Button
+	////////////////////////////////////////////////////////////////////////////
+	basic_menu button_menu(
+			std::string text,
+			menu_position pos = menu_position::bottom_right,
+			color body_color = get_theme().default_button_color
+	);
 
-   ////////////////////////////////////////////////////////////////////////////
-   // Menu Background
-   ////////////////////////////////////////////////////////////////////////////
-   using menu_background = panel; // We'll just reuse the panel now
+	basic_menu button_menu(
+			menu_position pos = menu_position::bottom_right,
+			color body_color = get_theme().default_button_color
+	);
 
-   ////////////////////////////////////////////////////////////////////////////
-   // Menu Items
-   ////////////////////////////////////////////////////////////////////////////
-   std::pair<std::string, std::string>
-   diplay_shortcut(key_code k, int mod);
+	basic_menu icon_menu(
+			uint32_t code,
+			float size,
+			menu_position pos = menu_position::bottom_right
+	);
 
-   inline std::pair<std::string, std::string>
-   diplay_shortcut(key_info k)
-   {
-      return diplay_shortcut(k.key, k.modifiers);
-   }
+	////////////////////////////////////////////////////////////////////////////
+	// Menu Background
+	////////////////////////////////////////////////////////////////////////////
+	using menu_background = panel; // We'll just reuse the panel now
 
-   inline auto menu_item_text(std::string text)
-   {
-      return hmargin({ 20, 20 }, align_left(label(std::move(text))));
-   }
+	////////////////////////////////////////////////////////////////////////////
+	// Menu Items
+	////////////////////////////////////////////////////////////////////////////
+	std::pair<std::string, std::string>
+	display_shortcut(key_code k, int mod);
 
-   inline auto menu_item_text(std::string text, shortcut_key shortcut)
-   {
-      auto [mod, key] = diplay_shortcut(shortcut.key, shortcut.modifiers);
+	inline std::pair<std::string, std::string>
+	display_shortcut(key_info k)
+	{
+		return display_shortcut(k.key, k.modifiers);
+	}
+
+	inline auto menu_item_text(std::string text)
+	{
+        return hmargin({ 20, 20 }, align_left(label(std::move(text))));
+	}
+
+	inline auto menu_item_text(std::string text, shortcut_key shortcut)
+	{
+		auto [mod, key] = display_shortcut(shortcut.key, shortcut.modifiers);
 #if defined(__APPLE__)
-      auto sk_font = get_theme().system_font;
+		auto sk_font = get_theme().system_font;
 #else
-      auto sk_font = get_theme().label_font;
+		auto sk_font = get_theme().label_font;
 #endif
-      return hmargin({ 20, 10 },
-         htile(
-            htile(
-               align_left(label(std::move(text)))
-             , align_right(label(mod).font(sk_font))
-            ),
+		return hmargin({ 20, 10 },
+					   htile(
+							   htile(
+									   align_left(label(std::move(text))),
+									   align_right(label(mod).font(sk_font))
+									   ),
 #if defined(__APPLE__)
-            left_margin(5, hsize(10, align_left(label(key))))
+								left_margin(5, hsize(10, align_left(label(key))))
 #else
-            hsize(10, align_left(label(key)))
+								hsize(10, align_left(label(key)))
 #endif
-         )
-      );
-   }
+							   )
+					   );
+	}
 
-   inline auto menu_item(std::string text)
-   {
-      return basic_menu_item(menu_item_text(std::move(text)));
-   }
+	inline auto menu_item(std::string text)
+	{
+		return basic_menu_item(menu_item_text(std::move(text)));
+	}
 
-   inline auto menu_item(std::string text, shortcut_key shortcut)
-   {
-      auto r = basic_menu_item(menu_item_text(std::move(text), shortcut));
-      r.shortcut = shortcut;
-      return r;
-   }
+	inline auto menu_item(std::string text, shortcut_key shortcut)
+	{
+		auto r = basic_menu_item(menu_item_text(std::move(text), shortcut));
+		r.shortcut = shortcut;
+		return r;
+	}
 
-   struct menu_item_spacer_element : public element
-   {
-      view_limits          limits(basic_context const& ctx) const override;
-      void                 draw(context const& ctx) override;
-   };
+	struct menu_item_spacer_element : public element
+	{
+		view_limits          limits(basic_context const& ctx) const override;
+		void                 draw(context const& ctx) override;
+	};
 
-   inline auto menu_item_spacer()
-   {
-      return menu_item_spacer_element{};
-   }
+	inline auto menu_item_spacer()
+	{
+		return menu_item_spacer_element{};
+	}
 
-   ////////////////////////////////////////////////////////////////////////////
-   // Selection Menu
-   ////////////////////////////////////////////////////////////////////////////
-   struct menu_selector
-   {
-      virtual ~menu_selector() = default;
+	////////////////////////////////////////////////////////////////////////////
+	// Selection Menu
+	////////////////////////////////////////////////////////////////////////////
+	struct menu_selector
+	{
+        virtual ~menu_selector() = default;
 
-      virtual std::size_t        size() const = 0;
-      virtual string_view        operator[](std::size_t index) const = 0;
-   };
+        [[nodiscard]] virtual std::size_t size() const = 0;
+        virtual string_view operator[](std::size_t index) const = 0;
+	};
 
-   std::pair<basic_menu, std::shared_ptr<basic_label>>
-   selection_menu(std::string init);
+	std::pair<basic_menu, std::shared_ptr<basic_label>>
+	build_selection_menu_label(std::string&& init);
 
-   std::pair<basic_menu, std::shared_ptr<basic_label>>
-   selection_menu(
-      std::function<void(string_view item)> on_select
-    , menu_selector const& items
-   );
+	std::pair<basic_menu, std::shared_ptr<basic_label>>
+	build_selection_menu(
+			std::string&& init,
+			const menu_select_callback& on_select,
+			const menu_selector & items
+	);
 
-   template <typename Sequence>
-   inline std::pair<basic_menu, std::shared_ptr<basic_label>>
-   selection_menu(
-      std::function<void(string_view item)> on_select
-    , Sequence const& seq
-    , typename std::enable_if<!std::is_base_of<menu_selector, Sequence>::value>::type* = nullptr
-   )
-   {
-      struct seq_menu_selector : menu_selector
-      {
-         seq_menu_selector(Sequence const& seq_)
-          : _seq(seq_)
-         {}
+	template <typename Sequence>
+	inline std::pair<basic_menu, std::shared_ptr<basic_label>>
+	selection_menu(
+			std::string&& init,
+			menu_select_callback on_select,
+			const Sequence & seq,
+			typename std::enable_if_t<!std::is_base_of_v<menu_selector, Sequence>>* = nullptr
+	)
+	{
+		struct seq_menu_selector : menu_selector
+		{
+			explicit seq_menu_selector(const Sequence & seq_)
+				: _seq(seq_){}
 
-         std::size_t
-         size() const override
-         {
-            return std::size(_seq);
-         }
+			[[nodiscard]] std::size_t size() const override
+			{
+				return std::size(_seq);
+			}
 
-         string_view
-         operator[](std::size_t index) const override
-         {
-            return _seq[index];
-         }
+			string_view
+			operator[](std::size_t index) const override
+			{
+				return _seq[index];
+			}
 
-         Sequence const& _seq;
-      };
+			const Sequence & _seq;
+		};
 
-      return selection_menu(on_select, seq_menu_selector{ seq });
-   }
+		return build_selection_menu(std::move(init), on_select, seq_menu_selector{ seq });
+	}
 
-   template <typename T>
-   std::pair<basic_menu, std::shared_ptr<basic_label>>
-   selection_menu(
-      std::function<void(string_view item)> on_select
-    , std::initializer_list<T> list
-   )
-   {
-      struct init_list_menu_selector : menu_selector
-      {
-         init_list_menu_selector(std::initializer_list<T> list_)
-          : _list(list_)
-         {}
+	template <typename T>
+	std::pair<basic_menu, std::shared_ptr<basic_label>>
+	selection_menu(
+			std::string&& init,
+			menu_select_callback on_select,
+			std::initializer_list<T> list
+			)
+	{
+		struct init_list_menu_selector : menu_selector
+		{
+			init_list_menu_selector(std::initializer_list<T> list_)
+				: _list(list_) {}
 
-         std::size_t
-         size() const override
-         {
-            return _list.size();
-         }
+			[[nodiscard]] std::size_t size() const override
+			{
+				return _list.size();
+			}
 
-         string_view
-         operator[](std::size_t index) const override
-         {
-            return *(_list.begin()+index);
-         }
+			string_view operator[](std::size_t index) const override
+			{
+				return *(_list.begin()+index);
+			}
 
-         std::initializer_list<T> _list;
-      };
+			std::initializer_list<T> _list;
+		};
 
-      return selection_menu(on_select, init_list_menu_selector{ list });
-   }
-}}
+		return build_selection_menu(std::move(init), on_select, init_list_menu_selector{ list });
+	}
+}
 
 #endif

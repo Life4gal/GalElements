@@ -121,12 +121,12 @@ namespace cycfi::elements
    }
 
    // Declared in context.hpp
-   inline rect device_to_user(rect const& r, canvas& cnv)
+   inline rect device_to_user(const rect & r, canvas& cnv)
    {
-       auto size = cnv.device_to_user(r.size().operator basic_point<point::coordinate_type>());
+       auto size = cnv.device_to_user(r.size());
       return {
          cnv.device_to_user(r.left_top())
-       , size.x, size.y
+       , size.width, size.height
       };
    }
 

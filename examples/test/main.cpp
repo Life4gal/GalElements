@@ -23,19 +23,19 @@ using namespace cycfi::elements;
 auto make_selection_menu()
 {
 	return selection_menu(
-			"You need select a item!",
-			[](std::string_view select, size_t where)
-			{
-			  print("build_selection_menu_label:", select, "has been selected with index", where);
-			},
-			{
-					"menu1",
-					"menu2",
-					"menu3",
-					"menu4",
-					"menu5",
-					"menu6",
-			}
+				   "You need select a item!",
+				   [](std::string_view select, size_t where)
+				   {
+					   print("build_selection_menu_label:", select, "has been selected with index", where);
+				   },
+				   {
+						   "menu1",
+						   "menu2",
+						   "menu3",
+						   "menu4",
+						   "menu5",
+						   "menu6",
+				   }
 	).first; // We return only the first, the menu. the second is a shared pointer to the label.
 }
 
@@ -101,26 +101,26 @@ auto make_dynamic_menu(char const* title, menu_position pos)
 	auto populate_menu =
 			[](auto& popup)
 			{
-			  // Sample menu
-			  const char * items[] = {"So", "So", "So", "So", "So", "So", "So", "So", "Many", "Buttons", "Here!"};
+				// Sample menu
+				const char * items[] = {"So", "So", "So", "So", "So", "So", "So", "So", "Many", "Buttons", "Here!"};
 
-			  // Dynamically generate your menu here
-			  vtile_composite list;
-			  for (auto item : items)
-				  list.push_back(share(menu_item(item)));
+				// Dynamically generate your menu here
+				vtile_composite list;
+				for (auto item : items)
+					list.push_back(share(menu_item(item)));
 
-			  // Shuffle the items just for kicks
-			  std::random_device rd;
-			  std::mt19937 g(rd());
-			  std::shuffle(list.begin(), list.end(), g);
+				// Shuffle the items just for kicks
+				std::random_device rd;
+				std::mt19937 g(rd());
+				std::shuffle(list.begin(), list.end(), g);
 
-			  // Show only a portion of the menu, providing a scroller
-			  // to allow scrolling over all the items.
-			  auto menu = layer(vsize(150, vscroller(list)), panel{});
+				// Show only a portion of the menu, providing a scroller
+				// to allow scrolling over all the items.
+				auto menu = layer(vsize(150, vscroller(list)), panel{});
 
-			  // Install the menu
-			  popup.menu(menu);
-			};
+				// Install the menu
+				popup.menu(menu);
+	};
 
 	// Populate menu dynamically
 	popup.on_open_menu = populate_menu;
@@ -152,8 +152,8 @@ auto make_menus(view& view_)
 					top_margin(20, make_dynamic_menu("Dynamic Menu", menu_position::bottom_right)),
 					top_margin(20, scroller(image{ "deep_space.jpg" })),
 					top_margin(20, make_popup_menu("Drop-up Menu", menu_position::top_right))
-			)
-	);
+					)
+			);
 }
 
 auto make_controls(view& view_)
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 	auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
 	auto background = box(bkd_color);
 
-	app _app(argc, argv, "Menus", "com.cycfi.menus");
+	app _app(argc, argv, "test", "com.cycfi.test");
 	window _win(_app.name());
 	_win.on_close = [&_app]() { _app.stop(); };
 
@@ -175,8 +175,10 @@ int main(int argc, char* argv[])
 
 	view_.content(
 			make_controls(view_),
-			background
-			);
 
-	return _app.run();
+
+			background
+	);
+
+   return _app.run();
 }

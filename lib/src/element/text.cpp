@@ -58,7 +58,7 @@ namespace cycfi { namespace elements
       if (_current_size.x != new_x || _current_size.y != new_y)
       {
          if (_current_size.x != -1 && _current_size.y != -1)
-            ctx.view.refresh(ctx.bounds.reconstruct_max_with(rect(ctx.bounds.left_top(), extent{_current_size})));
+            ctx.view.refresh(ctx.bounds.reconstruct_max_with(rect(ctx.bounds.left_top(), extent{_current_size.x, _current_size.y})));
          else
             ctx.view.refresh(ctx.bounds);
       }

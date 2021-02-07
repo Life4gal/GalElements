@@ -25,12 +25,6 @@ namespace cycfi::elements
 
         constexpr basic_point(coordinate_type _x, coordinate_type _y) noexcept : x(_x), y(_y) {}
 
-        // cast a extent to point, todo: delete it
-        constexpr explicit operator basic_extent<coordinate_type>()
-        {
-            return basic_extent<coordinate_type>(x, y);
-        }
-
         template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
         constexpr bool operator==(const basic_point<T>& other) const noexcept
         {
@@ -271,12 +265,6 @@ namespace cycfi::elements
         constexpr basic_extent() noexcept : width(size_type{}), height(size_type{}) {}
 
         constexpr basic_extent(size_type _width, size_type _height) noexcept : width(_width), height(_height) {}
-
-        // cast a extent to point, todo: delete it
-        constexpr explicit operator basic_point<size_type>()
-        {
-            return basic_point<size_type>(width, height);
-        }
 
         size_type width;
         size_type height;

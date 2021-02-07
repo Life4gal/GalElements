@@ -94,9 +94,9 @@ namespace cycfi { namespace elements
       g_object_unref(_app);
    }
 
-   void app::run()
+   int app::run()
    {
-      g_application_run(G_APPLICATION(_app), argc, argv);
+      return g_application_run(G_APPLICATION(_app), argc, argv);
    }
 
    void app::stop()
