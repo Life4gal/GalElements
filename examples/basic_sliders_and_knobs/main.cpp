@@ -1,172 +1,202 @@
-/*=============================================================================
-   Copyright (c) 2016-2020 Joel de Guzman
-
-   Distributed under the MIT License (https://opensource.org/licenses/MIT)
-=============================================================================*/
 #include <elements.hpp>
+#include <iostream>
+
+
+template<typename Text, typename... More>
+void print(Text t, More... more)
+{
+	using std::cout, std::endl;
+	cout << t << ' ';
+	if constexpr (sizeof...(more) == 0)
+	{
+		cout << endl;
+	}
+	else
+	{
+		print(more...);
+	}
+}
 
 using namespace cycfi::elements;
 
-// Main window background color
-auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
-auto background = box(bkd_color);
-
 using slider_ptr = std::shared_ptr<basic_slider_base>;
-slider_ptr hsliders[3];
-slider_ptr vsliders[3];
-
 using dial_ptr = std::shared_ptr<dial_base>;
-dial_ptr dials[3];
 
-template <bool is_vertical>
-auto make_markers()
+template<bool is_vertical>
+auto make_slider_marker()
 {
-   auto track = basic_track<5, is_vertical>();
-   return slider_labels<10>(
-      slider_marks<40>(track),         // Track with marks
-      0.8,                             // Label font size (relative size)
-      "0", "1", "2", "3", "4",         // Labels
-      "5", "6", "7", "8", "9", "10"
-   );
+	auto track = basic_track<5 /* the width of the groove of the slider */, is_vertical>();
+	// not necessary, if you do not need mark and label, just return track
+	return slider_labels<10 /* the label size, or simply the distance between groove and label */>
+			(
+					slider_marks<40 /* length of mark */>(track),    // Track with marks
+					0.8,                        // Label font size (relative size)
+					"0", "1", "2", "3", "4",    // The number of labels depends on how many "labels" you provide
+					"5", "6", "7", "8", "9"
+			);
 }
 
-auto make_hslider(int index)
+auto make_horizontal_sliders(slider_ptr (&horizontal)[3])
 {
-   hsliders[index] = share(slider(
-      basic_thumb<25>(),
-      make_markers<false>(),
-      (index + 1) * 0.25
-   ));
-   return align_middle(hmargin({ 20, 20 }, hold(hsliders[index])));
+	auto&& maker = [](slider_ptr& p_slider, double init_value)
+	{
+	  p_slider = share(slider(basic_thumb<25 /* size of thumb */>(), make_slider_marker<false>(), init_value));
+	  return align_middle(hmargin({20, 20}, hold(p_slider)));
+	};
+
+	return hmin_size(
+			300,
+			vtile(
+					maker(horizontal[0], 0.0),
+					maker(horizontal[1], 0.0),
+					maker(horizontal[2], 0.0)
+			)
+	);
 }
 
-auto make_hsliders()
+auto make_vertical_sliders(slider_ptr (&vertical)[3])
 {
-   return hmin_size(300,
-      vtile(
-         make_hslider(0),
-         make_hslider(1),
-         make_hslider(2)
-      )
-   );
+	auto&& maker = [](slider_ptr& p_slider, double init_value)
+	{
+	  p_slider = share(slider(basic_thumb<25 /* size of thumb */>(), make_slider_marker<true>(), init_value));
+	  return align_center(vmargin({20, 20}, hold(p_slider)));
+	};
+
+	return hmin_size(
+			300,
+			htile(
+					maker(vertical[0], 0.0),
+					maker(vertical[1], 0.0),
+					maker(vertical[2], 0.0)
+			)
+	);
 }
 
-auto make_vslider(int index)
+auto make_dials(dial_ptr (&dials)[3])
 {
-   vsliders[index] = share(slider(
-      basic_thumb<25>(),
-      make_markers<true>(),
-      (index + 1) * 0.25
-   ));
-   return align_center(vmargin({ 20, 20 }, hold(vsliders[index])));
+	auto&& maker = [](dial_ptr& p_dial, double init_value)
+	{
+		p_dial = share(
+				dial(
+						radial_marks<20/* length of radial mark line */>( // radial mark is not necessary
+							  basic_knob<50/* size of knob */>()
+							          ),
+						init_value)
+				);
+		auto markers = radial_labels<15> // also not necessary, use hold(p_dial)
+				(
+					  hold(p_dial),
+					  0.7,
+					  "0", "1", "2", "3", "4",
+					  "5", "6", "7", "8", "9"
+						);
+		return align_center_middle(markers);
+	};
+
+	return hmargin(
+			20,
+			vtile(
+					maker(dials[0], 0.0),
+					maker(dials[1], 0.0),
+					maker(dials[2], 0.0)
+			)
+	);
 }
 
-auto make_vsliders()
+auto make_slider_and_knob_control(slider_ptr (&horizontal)[3], slider_ptr (&vertical)[3], dial_ptr (&dials)[3], view& view)
 {
-   return hmin_size(300,
-      htile(
-         make_vslider(0),
-         make_vslider(1),
-         make_vslider(2)
-      )
-   );
+	return margin
+			(
+					{10, 10, 10, 10},
+					vmin_size(300,
+					          htile(
+							          margin(
+									          {10, 10, 10, 10},
+									          pane(
+											          "Horizontal Sliders",
+											          make_horizontal_sliders(horizontal),
+											          0.8f
+									          )
+							          ),
+							          margin(
+									          {10, 10, 10, 10},
+									          pane(
+											          "Vertical Sliders",
+											          make_vertical_sliders(vertical),
+											          0.8f
+									          )
+							          ),
+							          hstretch(
+									          0.5f,
+									          margin(
+											          {10, 10, 10, 10},
+											          pane(
+													          "Knobs",
+													          make_dials(dials),
+													          0.8f
+											          )
+									          )
+							          )
+					          )
+					)
+			);
 }
 
-auto make_dial(int index)
+void link_slider_and_knob(slider_ptr (&horizontal)[3], slider_ptr (&vertical)[3], dial_ptr (&dials)[3], view& view)
 {
-   dials[index] = share(
-      dial(
-         radial_marks<20>(basic_knob<50>()),
-         (index + 1) * 0.25
-      )
-   );
-
-   auto markers = radial_labels<15>(
-      hold(dials[index]),
-      0.7,                                   // Label font size (relative size)
-      "0", "1", "2", "3", "4",               // Labels
-      "5", "6", "7", "8", "9", "10"
-   );
-
-   return align_center_middle(markers);
-}
-
-auto make_dials()
-{
-   return hmargin(20,
-      vtile(
-         make_dial(0),
-         make_dial(1),
-         make_dial(2)
-      )
-   );
-}
-
-auto make_controls()
-{
-   return
-      margin({ 20, 10, 20, 10 },
-         vmin_size(400,
-            htile(
-               margin({ 20, 20, 20, 20 }, pane("Vertical Sliders", make_vsliders(), 0.8f)),
-               margin({ 20, 20, 20, 20 }, pane("Horizontal Sliders", make_hsliders(), 0.8f)),
-               hstretch(0.5, margin({ 20, 20, 20, 20 }, pane("Knobs", make_dials(), 0.8f)))
-            )
-         )
-      );
-}
-
-void link_control(int index, view& view_)
-{
-   vsliders[index]->on_change =
-      [index, &view_](double val)
-      {
-         hsliders[index]->slider_base::value(val);
-         dials[index]->dial_base::value(val);
-         view_.refresh(*hsliders[index]);
-         view_.refresh(*dials[index]);
-      };
-
-   hsliders[index]->on_change =
-      [index, &view_](double val)
-      {
-         vsliders[index]->slider_base::value(val);
-         dials[index]->dial_base::value(val);
-         view_.refresh(*vsliders[index]);
-         view_.refresh(*dials[index]);
-      };
-
-   dials[index]->on_change =
-      [index, &view_](double val)
-      {
-         vsliders[index]->slider_base::value(val);
-         hsliders[index]->slider_base::value(val);
-         view_.refresh(*vsliders[index]);
-         view_.refresh(*hsliders[index]);
-      };
-}
-
-void link_controls(view& view_)
-{
-   link_control(0, view_);
-   link_control(1, view_);
-   link_control(2, view_);
+	for(auto i = 0; i < 3; ++i)
+	{
+		horizontal[i]->on_change = [i, &vertical, &dials, &view](double value)
+		{
+			vertical[i]->slider_base::value(value);
+			dials[i]->dial_base::value(value);
+			view.refresh(*vertical[i]);
+			view.refresh(*dials[i]);
+			print("horizontal slider value changed to ->", value);
+		};
+		vertical[i]->on_change = [i, &horizontal, &dials, &view](double value)
+		{
+			horizontal[i]->slider_base::value(value);
+			dials[i]->dial_base::value(value);
+			view.refresh(*horizontal[i]);
+			view.refresh(*dials[i]);
+			print("vertical slider value changed to ->", value);
+		};
+		dials[i]->on_change = [i, &horizontal, &vertical, &view](double value)
+		{
+			horizontal[i]->slider_base::value(value);
+			vertical[i]->slider_base::value(value);
+			view.refresh(*horizontal[i]);
+			view.refresh(*vertical[i]);
+			print("dials value changed to ->", value);
+		};
+	}
 }
 
 int main(int argc, char* argv[])
 {
-   app _app(argc, argv, "Basic Sliders And Knobs", "com.cycfi.basic-sliders-and-knobs");
-   window _win(_app.name());
-   _win.on_close = [&_app]() { _app.stop(); };
+	// Main window background color
+	auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
+	auto background = box(bkd_color);
 
-   view view_(_win);
+	app _app(argc, argv, "Basic Sliders And Knobs", "com.cycfi.basic-sliders-and-knobs");
+	window _win(_app.name());
+	_win.on_close = [&_app]() { _app.stop(); };
 
-   view_.content(
-      make_controls(),
-      background
-   );
+	view view(_win);
 
-   link_controls(view_);
-   _app.run();
-   return 0;
+	slider_ptr horizontal_sliders[3];
+	slider_ptr vertical_sliders[3];
+	dial_ptr dials[3];
+
+	auto slider_and_knob = share(make_slider_and_knob_control(horizontal_sliders, vertical_sliders, dials, view));
+
+	view.content(
+			slider_and_knob,
+			background
+			);
+
+	link_slider_and_knob(horizontal_sliders, vertical_sliders, dials, view);
+
+	return _app.run();
 }
