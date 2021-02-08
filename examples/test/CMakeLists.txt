@@ -29,6 +29,10 @@ set(ELEMENTS_APP_VERSION "1.0")
 
 set(ELEMENTS_APP_RESOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/deep_space.jpg
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/power_180x632.png
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/phase_180x632.png
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/mail_180x632.png
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/transport_180x632.png
 )
 
 include(ElementsConfigApp)

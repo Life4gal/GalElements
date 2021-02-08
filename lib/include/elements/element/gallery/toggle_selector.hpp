@@ -26,6 +26,12 @@ namespace cycfi { namespace elements
       bool                    cursor(context const& ctx, point p, cursor_tracking status) override;
       bool                    wants_control() const override;
 
+//	  // todo: it should be reasonable because sometime we maybe want to know the button label text
+//	  std::string_view get_text() const
+//	  {
+//		  return _text;
+//	  }
+
       std::string             _text;
    };
 

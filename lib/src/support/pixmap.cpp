@@ -32,11 +32,17 @@ namespace cycfi::elements
 	   auto  path = std::string(filename);
 	   auto  pos = path.find_last_of('.');
 	   if (pos == std::string::npos)
-		   throw failed_to_load_pixmap{ "Unknown file type." };
+	   {
+		   auto error = std::string("Error: file ") + filename + " is unknown type!";
+		   throw failed_to_load_pixmap{ error };
+	   }
 
 	   fs::path full_path = find_file(filename);
 	   if (full_path.empty())
-		   throw failed_to_load_pixmap{ "File does not exist." };
+	   {
+		   auto error = std::string("Error: file ") + filename + " is not exist!";
+		   throw failed_to_load_pixmap{ error };
+	   }
 
 	   auto  ext = path.substr(pos);
 	   if (ext == ".png" || ext == ".PNG")

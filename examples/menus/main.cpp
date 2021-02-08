@@ -92,7 +92,7 @@ auto make_popup_menu(const char * title, menu_position pos)
 	return popup;
 }
 
-auto make_dynamic_menu(char const* title, menu_position pos)
+auto make_dynamic_menu(const char * title, menu_position pos)
 {
 	auto popup  = button_menu(title, pos);
 
@@ -127,7 +127,7 @@ auto make_dynamic_menu(char const* title, menu_position pos)
 	return popup;
 }
 
-auto make_menus(view& view_)
+auto make_menus()
 {
 	return margin(
 			/* ______________________________________________________
@@ -156,9 +156,9 @@ auto make_menus(view& view_)
 	);
 }
 
-auto make_controls(view& view_)
+auto make_controls()
 {
-	return margin({ 20, 20, 20, 20 }, pane("Menus", make_menus(view_)));
+	return margin({ 20, 20, 20, 20 }, pane("Menus", make_menus()));
 }
 
 int main(int argc, char* argv[])
@@ -167,16 +167,16 @@ int main(int argc, char* argv[])
 	auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
 	auto background = box(bkd_color);
 
-	app _app(argc, argv, "Menus", "com.cycfi.menus");
-	window _win(_app.name());
-	_win.on_close = [&_app]() { _app.stop(); };
+	app app(argc, argv, "Menus", "com.cycfi.menus");
+	window win(app.name());
+	win.on_close = [&app]() { app.stop(); };
 
-	view view_(_win);
+	view view(win);
 
-	view_.content(
-			make_controls(view_),
+	view.content(
+			make_controls(),
 			background
 			);
 
-	return _app.run();
+	return app.run();
 }

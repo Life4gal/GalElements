@@ -1,7 +1,6 @@
 #include <elements.hpp>
 #include <iostream>
 
-
 template<typename Text, typename... More>
 void print(Text t, More... more)
 {
@@ -103,7 +102,7 @@ auto make_dials(dial_ptr (&dials)[3])
 	);
 }
 
-auto make_slider_and_knob_control(slider_ptr (&horizontal)[3], slider_ptr (&vertical)[3], dial_ptr (&dials)[3], view& view)
+auto make_slider_and_knob_control(slider_ptr (&horizontal)[3], slider_ptr (&vertical)[3], dial_ptr (&dials)[3])
 {
 	return margin
 			(
@@ -150,24 +149,24 @@ void link_slider_and_knob(slider_ptr (&horizontal)[3], slider_ptr (&vertical)[3]
 		{
 			vertical[i]->slider_base::value(value);
 			dials[i]->dial_base::value(value);
-			view.refresh(*vertical[i]);
-			view.refresh(*dials[i]);
+			view.refresh(vertical[i].operator*());
+			view.refresh(dials[i].operator*());
 			print("horizontal slider value changed to ->", value);
 		};
 		vertical[i]->on_change = [i, &horizontal, &dials, &view](double value)
 		{
 			horizontal[i]->slider_base::value(value);
 			dials[i]->dial_base::value(value);
-			view.refresh(*horizontal[i]);
-			view.refresh(*dials[i]);
+			view.refresh(horizontal[i].operator*());
+			view.refresh(dials[i].operator*());
 			print("vertical slider value changed to ->", value);
 		};
 		dials[i]->on_change = [i, &horizontal, &vertical, &view](double value)
 		{
 			horizontal[i]->slider_base::value(value);
 			vertical[i]->slider_base::value(value);
-			view.refresh(*horizontal[i]);
-			view.refresh(*vertical[i]);
+			view.refresh(horizontal[i].operator*());
+			view.refresh(vertical[i].operator*());
 			print("dials value changed to ->", value);
 		};
 	}
@@ -179,17 +178,17 @@ int main(int argc, char* argv[])
 	auto constexpr bkd_color = color::build_color(35, 35, 37, 255);
 	auto background = box(bkd_color);
 
-	app _app(argc, argv, "Basic Sliders And Knobs", "com.cycfi.basic-sliders-and-knobs");
-	window _win(_app.name());
-	_win.on_close = [&_app]() { _app.stop(); };
+	app app(argc, argv, "Basic Sliders And Knobs", "com.cycfi.basic-sliders-and-knobs");
+	window win(app.name());
+	win.on_close = [&app]() { app.stop(); };
 
-	view view(_win);
+	view view(win);
 
 	slider_ptr horizontal_sliders[3];
 	slider_ptr vertical_sliders[3];
 	dial_ptr dials[3];
 
-	auto slider_and_knob = share(make_slider_and_knob_control(horizontal_sliders, vertical_sliders, dials, view));
+	auto slider_and_knob = share(make_slider_and_knob_control(horizontal_sliders, vertical_sliders, dials));
 
 	view.content(
 			slider_and_knob,
@@ -198,5 +197,5 @@ int main(int argc, char* argv[])
 
 	link_slider_and_knob(horizontal_sliders, vertical_sliders, dials, view);
 
-	return _app.run();
+	return app.run();
 }

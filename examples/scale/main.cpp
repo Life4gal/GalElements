@@ -54,7 +54,7 @@ auto make_column()
    sprite power_button = sprite{ "power_180x632.png", 158*button_scale, button_scale };
    sprite phase_button = sprite{ "phase_180x632.png", 158*button_scale, button_scale };
    sprite mail_button = sprite{ "mail_180x632.png", 158*button_scale, button_scale };
-   sprite transpo_button = sprite{ "transpo_180x632.png", 158*button_scale, button_scale };
+   sprite transpo_button = sprite{ "transport_180x632.png", 158*button_scale, button_scale };
 
    auto  group2 =
          group("Buttons",
