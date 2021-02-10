@@ -171,14 +171,14 @@ namespace cycfi::elements
         template <typename T, typename RetType = std::common_type_t<T, coordinate_type>, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
         constexpr RetType vertical_distance(const basic_point<T>& other) const noexcept
         {
-            return other.y - y + x;
+            return other.y - y + 1;
         }
 
         // vertical distance from other to this, if other in this' bottom side, return value should greater than 0
         template <typename T, typename RetType = std::common_type_t<T, coordinate_type>, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_convertible_v<T, coordinate_type>>>
         constexpr RetType vertical_distance(T _y) const noexcept
         {
-            return _y - y + x;
+            return _y - y + 1;
         }
 
         template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, coordinate_type>>>
